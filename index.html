@@ -241,6 +241,9 @@ textarea{resize:vertical;min-height:85px;}
       </div>
     </div>
 
+    <div class="section-label">Filter by Branch</div>
+    <div class="block-filters" id="branchFilters" style="margin-bottom:18px"></div>
+
     <div class="section-label">Filter by Block</div>
     <div class="block-filters" id="blockFilters"></div>
 
@@ -259,6 +262,14 @@ textarea{resize:vertical;min-height:85px;}
         <div class="field">
           <label>Your Name / Nickname</label>
           <input type="text" id="reviewer" placeholder="e.g. Turki, Anonymouse…">
+        </div>
+        <div class="field">
+          <label>Branch</label>
+          <select id="branch">
+            <option value="">— Select branch —</option>
+            <option value="Riyadh">🏙️ Riyadh</option>
+            <option value="Jeddah">🌊 Jeddah</option>
+          </select>
         </div>
         <div class="field">
           <label>Block (Main Category)</label>
@@ -382,7 +393,7 @@ const BLOCKS = {
 // ── STATE ──
 let allReviews = [];
 let overallRating = 0, diffRating = 0, selectedTags = [];
-let activeBlock = 'All', activeSubject = 'All';
+let activeBlock = 'All', activeSubject = 'All', activeBranch = 'All';
 let adminAuthed = false;
 let editingId = null;
 
@@ -391,6 +402,7 @@ let editingId = null;
   await fetchReviews();
   initStars();
   initTags();
+  renderBranchFilters();
   renderBlockFilters();
 })();
 
@@ -398,6 +410,25 @@ async function fetchReviews() {
   const { data, error } = await sb.from('reviews').select('*').order('created_at', { ascending: false });
   if (error) { showToast('⚠️ Could not connect to database', true); return; }
   allReviews = data || [];
+  renderLectures();
+}
+
+// ── BRANCH FILTERS ──
+function renderBranchFilters() {
+  const branches = ['All', 'Riyadh', 'Jeddah'];
+  const icons = { All: '🌍', Riyadh: '🏙️', Jeddah: '🌊' };
+  document.getElementById('branchFilters').innerHTML = branches.map(b =>
+    `<button class="block-pill ${b === activeBranch ? 'active' : ''}" style="${b===activeBranch?'border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1)':''}" onclick="setBranchFilter('${b}')">${icons[b]} ${b}</button>`
+  ).join('');
+}
+
+function setBranchFilter(branch) {
+  activeBranch = branch;
+  activeBlock = 'All';
+  activeSubject = 'All';
+  renderBranchFilters();
+  renderBlockFilters();
+  renderSubjectFilters();
   renderLectures();
 }
 
@@ -442,7 +473,7 @@ function renderSubjectFilters() {
   const el = document.getElementById('subjectFilters');
   if (activeBlock === 'All' || !BLOCKS[activeBlock]) { el.style.display = 'none'; return; }
   
-  const usedSubjects = [...new Set(allReviews.filter(r => r.block === activeBlock).map(r => r.subject))];
+  const usedSubjects = [...new Set(allReviews.filter(r => r.block === activeBlock && (activeBranch === 'All' || r.branch === activeBranch)).map(r => r.subject))];
   if (!usedSubjects.length) { el.style.display = 'none'; return; }
 
   el.style.display = 'flex';
@@ -461,8 +492,8 @@ function setSubjectFilter(subject) {
 function groupedLectures() {
   const map = {};
   allReviews.forEach(r => {
-    const key = `${r.block}||${r.subject}||${r.lecture_title}`;
-    if (!map[key]) map[key] = { block: r.block, subject: r.subject, title: r.lecture_title, reviews: [] };
+    const key = `${r.branch}||${r.block}||${r.subject}||${r.lecture_title}`;
+    if (!map[key]) map[key] = { branch: r.branch, block: r.block, subject: r.subject, title: r.lecture_title, reviews: [] };
     map[key].reviews.push(r);
   });
   return Object.values(map);
@@ -481,9 +512,10 @@ function renderLectures() {
 
   let filtered = lectures.filter(l => {
     const matchQuery   = l.title.toLowerCase().includes(query) || l.subject.toLowerCase().includes(query) || (l.block||'').toLowerCase().includes(query);
+    const matchBranch  = activeBranch === 'All' || l.branch === activeBranch;
     const matchBlock   = activeBlock === 'All' || l.block === activeBlock;
     const matchSubject = activeSubject === 'All' || l.subject === activeSubject;
-    return matchQuery && matchBlock && matchSubject;
+    return matchQuery && matchBranch && matchBlock && matchSubject;
   }).sort((a,b) => avg(b,'overall') - avg(a,'overall'));
 
   const grid = document.getElementById('lectureGrid');
@@ -503,8 +535,10 @@ function renderLectures() {
     const sB = encodeURIComponent(l.block);
     const sS = encodeURIComponent(l.subject);
     const sT = encodeURIComponent(l.title);
+    const sBr = encodeURIComponent(l.branch||'');
+    const branchIcon = l.branch === 'Riyadh' ? '🏙️' : l.branch === 'Jeddah' ? '🌊' : '';
     return `
-      <div class="lec-card ${cls}" onclick="openModal('${sB}','${sS}','${sT}')">
+      <div class="lec-card ${cls}" onclick="openModal('${sB}','${sS}','${sT}','${sBr}')">
         <div class="lec-header">
           <div class="lec-title">${l.title}</div>
           <div class="stars-display">⭐<span class="avg">${avgO}</span><span class="cnt">(${count})</span></div>
@@ -512,6 +546,7 @@ function renderLectures() {
         <div class="lec-meta">
           <span class="meta-pill block" style="color:${color}!important">${blockInfo.emoji} ${l.block}</span>
           <span class="meta-pill">${l.subject}</span>
+          ${l.branch ? `<span class="meta-pill">${branchIcon} ${l.branch}</span>` : ''}
           <span class="meta-pill">🔥 ${avgD}</span>
           <span class="meta-pill">${count} review${count>1?'s':''}</span>
         </div>
@@ -521,11 +556,12 @@ function renderLectures() {
 }
 
 // ── MODAL ──
-function openModal(sB, sS, sT) {
+function openModal(sB, sS, sT, sBr) {
   const block = decodeURIComponent(sB);
   const subject = decodeURIComponent(sS);
   const title = decodeURIComponent(sT);
-  const lec = groupedLectures().find(l => l.block === block && l.subject === subject && l.title === title);
+  const branch = decodeURIComponent(sBr||'');
+  const lec = groupedLectures().find(l => l.block === block && l.subject === subject && l.title === title && (l.branch||'') === branch);
   if (!lec) return;
 
   const avgO = avg(lec,'overall').toFixed(1);
@@ -543,6 +579,7 @@ function openModal(sB, sS, sT) {
       <div class="rating-block"><div class="big">🔥 ${avgD}</div><div class="lbl">Difficulty</div></div>
       <div class="rating-block"><div class="big">${blockInfo.emoji}</div><div class="lbl">${lec.block}</div></div>
       <div class="rating-block"><div class="big">📚</div><div class="lbl">${lec.subject}</div></div>
+      ${lec.branch ? `<div class="rating-block"><div class="big">${lec.branch==='Riyadh'?'🏙️':'🌊'}</div><div class="lbl">${lec.branch}</div></div>` : ''}
     </div>`;
 
   if (topTags.length) body += `<div class="review-tags" style="margin-bottom:16px">${topTags.map(([t,c])=>`<span class="review-tag">${t} ×${c}</span>`).join('')}</div>`;
@@ -605,12 +642,13 @@ function initTags() {
 // ── SUBMIT ──
 async function submitReview() {
   const reviewer = document.getElementById('reviewer').value.trim();
+  const branch   = document.getElementById('branch').value;
   const block    = document.getElementById('block').value;
   const subject  = document.getElementById('subject').value;
   const title    = document.getElementById('lectureTitle').value.trim();
   const tip      = document.getElementById('tipText').value.trim();
 
-  if (!reviewer || !block || !subject || !title || !overallRating || !diffRating) {
+  if (!reviewer || !branch || !block || !subject || !title || !overallRating || !diffRating) {
     showToast('⚠️ Please fill in all fields and ratings', true); return;
   }
 
@@ -618,7 +656,7 @@ async function submitReview() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Saving…';
 
-  const { error } = await sb.from('reviews').insert({ reviewer, block, subject, lecture_title: title, overall: overallRating, difficulty: diffRating, tags: selectedTags, tip });
+  const { error } = await sb.from('reviews').insert({ reviewer, branch, block, subject, lecture_title: title, overall: overallRating, difficulty: diffRating, tags: selectedTags, tip });
   if (error) {
     showToast('❌ Error saving. Try again.', true);
     btn.disabled = false; btn.textContent = 'Submit Review →'; return;
@@ -626,6 +664,7 @@ async function submitReview() {
 
   overallRating = 0; diffRating = 0; selectedTags = [];
   ['reviewer','lectureTitle','tipText'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('branch').value = '';
   document.getElementById('block').value = '';
   document.getElementById('subject').innerHTML = '<option value="">— Select block first —</option>';
   document.querySelectorAll('.star').forEach(s => s.classList.remove('lit'));
@@ -726,8 +765,11 @@ function checkAdminPass() {
 async function renderAdminPanel(search = '') {
   await fetchReviews();
   const filtered = search
-    ? allReviews.filter(r => r.lecture_title.toLowerCase().includes(search) || r.reviewer.toLowerCase().includes(search) || (r.block||'').toLowerCase().includes(search))
+    ? allReviews.filter(r => r.lecture_title.toLowerCase().includes(search) || r.reviewer.toLowerCase().includes(search) || (r.block||'').toLowerCase().includes(search) || (r.branch||'').toLowerCase().includes(search))
     : allReviews;
+
+  const blockOpts = ['Cardiology','Musculoskeletal','Neurology','Respiratory','Gastrointestinal','Renal','Endocrine','Hematology','Reproductive','Immunology','Other'].map(b=>`<option value="${b}">${b}</option>`).join('');
+  const subjectOpts = ['Anatomy','Physiology','Pharmacology','Pathology','Biochemistry','Histology','Microbiology','Immunology','Clinical Skills','Other'].map(s=>`<option value="${s}">${s}</option>`).join('');
 
   document.getElementById('adminContent').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -735,49 +777,96 @@ async function renderAdminPanel(search = '') {
       <button onclick="adminAuthed=false;renderAdminLogin()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Log out</button>
     </div>
     <div class="admin-search">
-      <div class="search-wrap" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="Search reviews…" value="${search}" oninput="renderAdminPanel(this.value)" style="padding-left:36px"></div>
+      <div class="search-wrap" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="Search by lecture, reviewer, block, branch…" value="${search}" oninput="renderAdminPanel(this.value)" style="padding-left:36px"></div>
     </div>
     ${filtered.length === 0 ? '<div class="empty-state"><div class="big">🔍</div><p>No reviews found.</p></div>' :
       filtered.map(r => `
         <div class="review-row" id="row-${r.id}">
           <div class="review-row-info">
             <div class="review-row-title">${r.lecture_title}</div>
-            <div class="review-row-meta">${r.block||''} · ${r.subject} · by <strong>${r.reviewer}</strong> · ⭐${r.overall} 🔥${r.difficulty} · ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
-            <div id="tip-display-${r.id}" class="review-row-tip">${r.tip || '<span style="color:var(--muted);font-style:italic">No tip</span>'}</div>
-            <div id="tip-edit-${r.id}" style="display:none">
-              <textarea id="tip-input-${r.id}" style="width:100%;margin-top:8px;font-size:12px;min-height:70px">${r.tip||''}</textarea>
+            <div class="review-row-meta">
+              ${r.branch?`${r.branch==='Riyadh'?'🏙️':'🌊'} ${r.branch} · `:''}${r.block||'—'} · ${r.subject||'—'} · by <strong>${r.reviewer}</strong> · ⭐${r.overall} 🔥${r.difficulty} · ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+            </div>
+
+            <!-- VIEW MODE -->
+            <div id="view-${r.id}">
+              <div class="review-row-tip">${r.tip || '<span style="color:var(--muted);font-style:italic">No tip</span>'}</div>
+            </div>
+
+            <!-- EDIT MODE -->
+            <div id="edit-${r.id}" style="display:none;margin-top:10px">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+                <div>
+                  <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Branch</label>
+                  <select id="edit-branch-${r.id}" style="font-size:12px;padding:6px 10px">
+                    <option value="">— None —</option>
+                    <option value="Riyadh" ${r.branch==='Riyadh'?'selected':''}>🏙️ Riyadh</option>
+                    <option value="Jeddah" ${r.branch==='Jeddah'?'selected':''}>🌊 Jeddah</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Block</label>
+                  <select id="edit-block-${r.id}" style="font-size:12px;padding:6px 10px">
+                    ${blockOpts}
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Subject</label>
+                  <select id="edit-subject-${r.id}" style="font-size:12px;padding:6px 10px">
+                    ${subjectOpts}
+                  </select>
+                </div>
+              </div>
+              <div style="margin-bottom:8px">
+                <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Lecture Title</label>
+                <input type="text" id="edit-title-${r.id}" value="${r.lecture_title}" style="font-size:12px;padding:6px 10px">
+              </div>
+              <div>
+                <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Tip</label>
+                <textarea id="edit-tip-${r.id}" style="width:100%;font-size:12px;min-height:60px">${r.tip||''}</textarea>
+              </div>
             </div>
           </div>
           <div class="review-row-actions">
-            <button class="btn-edit-save" id="edit-btn-${r.id}" onclick="toggleEdit('${r.id}')">✏️ Edit</button>
+            <button class="btn-edit-save" id="edit-btn-${r.id}" onclick="toggleEdit('${r.id}','${(r.block||'').replace(/'/g,"\\'")}','${(r.subject||'').replace(/'/g,"\\'")}')">✏️ Edit</button>
             <button class="btn-delete" onclick="deleteReview('${r.id}')">🗑 Delete</button>
           </div>
         </div>`).join('')
     }`;
 }
 
-function toggleEdit(id) {
-  const display = document.getElementById(`tip-display-${id}`);
-  const editBox = document.getElementById(`tip-edit-${id}`);
-  const btn = document.getElementById(`edit-btn-${id}`);
-  if (editBox.style.display === 'none') {
-    display.style.display = 'none';
-    editBox.style.display = 'block';
+function toggleEdit(id, block, subject) {
+  const viewEl = document.getElementById(`view-${id}`);
+  const editEl = document.getElementById(`edit-${id}`);
+  const btn    = document.getElementById(`edit-btn-${id}`);
+  if (editEl.style.display === 'none') {
+    viewEl.style.display = 'none';
+    editEl.style.display = 'block';
+    // pre-select current values
+    const bSel = document.getElementById(`edit-block-${id}`);
+    const sSel = document.getElementById(`edit-subject-${id}`);
+    if (bSel) bSel.value = block;
+    if (sSel) sSel.value = subject;
     btn.textContent = '💾 Save';
     btn.onclick = () => saveEdit(id);
   } else {
-    display.style.display = 'block';
-    editBox.style.display = 'none';
+    viewEl.style.display = 'block';
+    editEl.style.display = 'none';
     btn.textContent = '✏️ Edit';
-    btn.onclick = () => toggleEdit(id);
+    btn.onclick = () => toggleEdit(id, block, subject);
   }
 }
 
 async function saveEdit(id) {
-  const newTip = document.getElementById(`tip-input-${id}`).value.trim();
-  const btn = document.getElementById(`edit-btn-${id}`);
+  const branch  = document.getElementById(`edit-branch-${id}`)?.value || '';
+  const block   = document.getElementById(`edit-block-${id}`)?.value || '';
+  const subject = document.getElementById(`edit-subject-${id}`)?.value || '';
+  const title   = document.getElementById(`edit-title-${id}`)?.value.trim() || '';
+  const tip     = document.getElementById(`edit-tip-${id}`)?.value.trim() || '';
+  const btn     = document.getElementById(`edit-btn-${id}`);
+
   btn.textContent = '…'; btn.disabled = true;
-  const { error } = await sb.from('reviews').update({ tip: newTip }).eq('id', id);
+  const { error } = await sb.from('reviews').update({ branch, block, subject, lecture_title: title, tip }).eq('id', id);
   if (error) { showToast('❌ Save failed', true); btn.textContent = '💾 Save'; btn.disabled = false; return; }
   showToast('✅ Saved!');
   await renderAdminPanel();
