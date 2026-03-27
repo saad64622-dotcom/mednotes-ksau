@@ -7,260 +7,317 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --bg: #0a0c10;
-    --surface: #111318;
-    --surface2: #181c24;
-    --border: rgba(255,255,255,0.06);
-    --accent: #3ecf8e;
-    --accent2: #f5a623;
-    --accent3: #e05c5c;
-    --text: #e8eaf0;
-    --muted: #6b7280;
-    --gold: #c9a84c;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh; overflow-x: hidden;
-  }
-  body::before {
-    content:''; position:fixed; inset:0;
-    background-image:
-      linear-gradient(rgba(62,207,142,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(62,207,142,0.03) 1px, transparent 1px);
-    background-size: 48px 48px; pointer-events:none; z-index:0;
-  }
+:root {
+  --bg: #080b10;
+  --surface: #0f1318;
+  --surface2: #161b23;
+  --surface3: #1d242f;
+  --border: rgba(255,255,255,0.07);
+  --accent: #3ecf8e;
+  --accent2: #f5a623;
+  --accent3: #e05c5c;
+  --text: #e8eaf0;
+  --muted: #5a6374;
+  --gold: #c9a84c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(62,207,142,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(62,207,142,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
 
-  header {
-    position:sticky; top:0; z-index:100;
-    background:rgba(10,12,16,0.85); backdrop-filter:blur(20px);
-    border-bottom:1px solid var(--border);
-    padding:0 24px; height:64px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .logo { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; letter-spacing:-0.5px; }
-  .logo span { color:var(--accent); }
-  .badge { font-family:'DM Mono',monospace; font-size:11px; padding:4px 10px; border-radius:20px; border:1px solid var(--gold); color:var(--gold); letter-spacing:1px; }
+/* HEADER */
+header{position:sticky;top:0;z-index:200;background:rgba(8,11,16,0.9);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:0 24px;height:62px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'Playfair Display',serif;font-size:21px;font-weight:900;letter-spacing:-0.5px;cursor:pointer;}
+.logo span{color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:12px;}
+.badge{font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--gold);color:var(--gold);letter-spacing:1px;}
+.admin-btn{font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.admin-btn:hover{border-color:var(--accent3);color:var(--accent3);}
 
-  main { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:40px 24px 80px; }
+/* NAV TABS */
+.nav{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:28px;}
+.nav-tab{flex:1;padding:9px 6px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:9px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.nav-tab.active{background:var(--surface2);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.5);}
 
-  .hero { text-align:center; margin-bottom:48px; animation:fadeUp 0.6s ease both; }
-  .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(32px,5vw,52px); font-weight:900; line-height:1.1; margin-bottom:12px; }
-  .hero h1 em { color:var(--accent); font-style:normal; }
-  .hero p { color:var(--muted); font-size:15px; max-width:480px; margin:0 auto; }
+/* MAIN */
+main{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:36px 24px 80px;}
 
-  .tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:4px; margin-bottom:32px; animation:fadeUp 0.6s 0.1s ease both; }
-  .tab { flex:1; padding:10px; border:none; background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; border-radius:9px; cursor:pointer; transition:all 0.2s; }
-  .tab.active { background:var(--surface2); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.4); }
+/* HERO */
+.hero{text-align:center;margin-bottom:44px;animation:fadeUp 0.5s ease both;}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(28px,4.5vw,48px);font-weight:900;line-height:1.1;margin-bottom:10px;}
+.hero h1 em{color:var(--accent);font-style:normal;}
+.hero p{color:var(--muted);font-size:14px;max-width:440px;margin:0 auto;}
 
-  .panel { display:none; animation:fadeUp 0.4s ease both; }
-  .panel.active { display:block; }
+/* PANEL */
+.panel{display:none;animation:fadeUp 0.35s ease both;}
+.panel.active{display:block;}
 
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
-  .card h2 { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
-  .card h2 .icon { font-size:22px; }
+/* SEARCH ROW */
+.search-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{padding-left:38px;width:100%;}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none;}
 
-  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  @media(max-width:600px){ .form-grid { grid-template-columns:1fr; } }
+/* BLOCK FILTER PILLS */
+.block-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.block-pill{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;}
+.block-pill.active{background:rgba(62,207,142,0.1);border-color:var(--accent);color:var(--accent);}
+.block-pill .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
 
-  .field { display:flex; flex-direction:column; gap:6px; }
-  .field.full { grid-column:1/-1; }
-  label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; }
+/* SUBJECT FILTERS */
+.subject-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;}
+.subj-pill{padding:5px 12px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.15s;}
+.subj-pill.active{background:rgba(245,166,35,0.1);border-color:var(--accent2);color:var(--accent2);}
 
-  input, select, textarea {
-    background:var(--bg); border:1px solid var(--border); border-radius:10px;
-    color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px;
-    padding:10px 14px; outline:none; transition:border-color 0.2s; width:100%;
-  }
-  input:focus, select:focus, textarea:focus { border-color:var(--accent); }
-  select option { background:var(--surface2); }
-  textarea { resize:vertical; min-height:90px; }
+/* LECTURE GRID */
+.lecture-grid{display:grid;gap:14px;}
+.lec-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;cursor:pointer;transition:border-color 0.2s,transform 0.15s;position:relative;overflow:hidden;}
+.lec-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;opacity:0;transition:opacity 0.2s;}
+.lec-card:hover{transform:translateY(-2px);}
+.lec-card:hover::before{opacity:1;}
+.lec-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:12px;}
+.lec-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;line-height:1.3;}
+.lec-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px;}
+.meta-pill{font-size:10px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:8px;background:var(--surface2);color:var(--muted);}
+.meta-pill.block{font-weight:600;}
+.stars-display{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.stars-display .avg{font-weight:700;font-size:14px;color:var(--accent2);margin-left:2px;}
+.stars-display .cnt{font-size:11px;color:var(--muted);}
+.lec-tip{font-size:12px;color:var(--muted);line-height:1.5;margin-top:7px;border-top:1px solid var(--border);padding-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 
-  .star-group { display:flex; gap:6px; align-items:center; }
-  .star { font-size:26px; cursor:pointer; transition:transform 0.15s; filter:grayscale(1) brightness(0.4); user-select:none; }
-  .star.lit { filter:none; transform:scale(1.1); }
-  .star:hover { transform:scale(1.2); }
+/* FORM */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;margin-bottom:22px;}
+.card h2{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:9px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:580px){.form-grid{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;}
+input,select,textarea{background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 13px;outline:none;transition:border-color 0.2s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select option{background:var(--surface2);}
+textarea{resize:vertical;min-height:85px;}
+.star-group{display:flex;gap:5px;align-items:center;}
+.star{font-size:24px;cursor:pointer;transition:transform 0.15s;filter:grayscale(1) brightness(0.35);user-select:none;}
+.star.lit{filter:none;transform:scale(1.1);}
+.star:hover{transform:scale(1.2);}
+.star-lbl{margin-left:8px;font-size:12px;color:var(--muted);}
+.tag-group{display:flex;flex-wrap:wrap;gap:7px;}
+.tag{padding:5px 13px;border-radius:18px;border:1px solid var(--border);font-size:12px;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted);}
+.tag.selected{border-color:var(--accent);color:var(--accent);background:rgba(62,207,142,0.08);}
+.btn-submit{width:100%;margin-top:18px;padding:13px;background:var(--accent);color:#080b10;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.2s,transform 0.15s;}
+.btn-submit:hover{opacity:0.9;transform:translateY(-1px);}
+.btn-submit:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
 
-  .tag-group { display:flex; flex-wrap:wrap; gap:8px; }
-  .tag { padding:6px 14px; border-radius:20px; border:1px solid var(--border); font-size:13px; cursor:pointer; transition:all 0.15s; background:transparent; color:var(--muted); }
-  .tag.selected { border-color:var(--accent); color:var(--accent); background:rgba(62,207,142,0.08); }
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;}
+.stat-card .num{font-family:'Playfair Display',serif;font-size:34px;font-weight:900;color:var(--accent);line-height:1;margin-bottom:4px;}
+.stat-card .lbl{font-size:12px;color:var(--muted);}
 
-  .btn-submit { width:100%; margin-top:20px; padding:14px; background:var(--accent); color:#0a0c10; border:none; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:opacity 0.2s, transform 0.15s; letter-spacing:0.3px; }
-  .btn-submit:hover { opacity:0.9; transform:translateY(-1px); }
-  .btn-submit:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:26px;transform:translateY(18px);transition:transform 0.25s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+.modal-header h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;line-height:1.25;max-width:82%;}
+.close-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:50%;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:color 0.2s;}
+.close-btn:hover{color:var(--text);}
+.modal-ratings{display:flex;gap:16px;flex-wrap:wrap;padding:14px;border-radius:11px;background:var(--surface2);margin-bottom:18px;}
+.rating-block{text-align:center;}
+.rating-block .big{font-size:22px;font-weight:700;}
+.rating-block .lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.review-item{background:var(--bg);border-radius:10px;padding:13px 15px;margin-bottom:9px;border:1px solid var(--border);}
+.review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.reviewer-name{font-size:13px;font-weight:600;color:var(--accent);}
+.review-stars{font-size:12px;}
+.review-tip{font-size:13px;line-height:1.6;}
+.review-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.review-tag{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(62,207,142,0.09);color:var(--accent);border:1px solid rgba(62,207,142,0.18);}
+.review-date{font-size:10px;color:var(--muted);margin-top:4px;}
 
-  .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-  .filter-btn { padding:7px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:13px; cursor:pointer; transition:all 0.15s; }
-  .filter-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(62,207,142,0.08); }
+/* ADMIN */
+.admin-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.9);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.admin-overlay.open{opacity:1;pointer-events:all;}
+.admin-panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:780px;max-height:90vh;overflow-y:auto;padding:28px;transform:translateY(20px);transition:transform 0.25s;}
+.admin-overlay.open .admin-panel{transform:translateY(0);}
+.admin-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+.admin-top h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;}
+.admin-top h2 span{color:var(--accent3);}
+.admin-search{display:flex;gap:10px;margin-bottom:18px;}
+.admin-search input{flex:1;}
+.review-row{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:14px 16px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;}
+.review-row-info{flex:1;}
+.review-row-title{font-weight:600;font-size:14px;margin-bottom:3px;}
+.review-row-meta{font-size:11px;color:var(--muted);margin-bottom:5px;}
+.review-row-tip{font-size:12px;color:var(--text);line-height:1.5;}
+.review-row-actions{display:flex;flex-direction:column;gap:7px;flex-shrink:0;}
+.btn-delete{padding:6px 14px;border-radius:8px;border:1px solid rgba(224,92,92,0.4);background:rgba(224,92,92,0.08);color:var(--accent3);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.btn-delete:hover{background:rgba(224,92,92,0.18);}
+.btn-edit-save{padding:6px 14px;border-radius:8px;border:1px solid rgba(62,207,142,0.4);background:rgba(62,207,142,0.08);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.btn-edit-save:hover{background:rgba(62,207,142,0.18);}
 
-  .search-bar { position:relative; margin-bottom:20px; }
-  .search-bar input { padding-left:40px; }
-  .search-bar .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:16px; pointer-events:none; }
+/* LOGIN */
+.login-box{max-width:380px;margin:0 auto;padding:40px 20px;text-align:center;}
+.login-box h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;margin-bottom:6px;}
+.login-box p{color:var(--muted);font-size:13px;margin-bottom:24px;}
+.login-box input{margin-bottom:12px;}
+.login-box .btn-submit{margin-top:0;}
+.login-error{color:var(--accent3);font-size:12px;margin-top:8px;}
 
-  .lecture-grid { display:grid; gap:16px; }
-  .lec-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px; cursor:pointer; transition:border-color 0.2s, transform 0.15s; position:relative; overflow:hidden; }
-  .lec-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:var(--accent); opacity:0; transition:opacity 0.2s; }
-  .lec-card:hover { border-color:rgba(62,207,142,0.3); transform:translateY(-2px); }
-  .lec-card:hover::before { opacity:1; }
+/* MISC */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .big{font-size:44px;margin-bottom:10px;}
+.spinner{width:18px;height:18px;border:2px solid rgba(62,207,142,0.3);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;}
+.spinner-lg{width:34px;height:34px;border-width:3px;}
+.loading-screen{text-align:center;padding:70px 20px;color:var(--muted);}
+.diff-bar{height:5px;border-radius:3px;flex:1;background:var(--surface2);overflow:hidden;}
+.diff-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#080b10;padding:11px 22px;border-radius:28px;font-weight:700;font-size:13px;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);z-index:9999;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.error{background:var(--accent3);color:#fff;}
+.section-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-  .lec-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:12px; }
-  .lec-title { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; line-height:1.3; }
-  .lec-meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
-  .meta-pill { font-size:11px; font-family:'DM Mono',monospace; padding:3px 9px; border-radius:10px; background:var(--surface2); color:var(--muted); }
+/* Block colors */
+.block-cardio    {--bc:#e05c5c;}
+.block-msk       {--bc:#3ecf8e;}
+.block-neuro     {--bc:#a78bfa;}
+.block-resp      {--bc:#38bdf8;}
+.block-gi        {--bc:#fb923c;}
+.block-renal     {--bc:#f472b6;}
+.block-endo      {--bc:#facc15;}
+.block-hemato    {--bc:#34d399;}
+.block-repro     {--bc:#f9a8d4;}
+.block-immuno    {--bc:#60a5fa;}
+.block-other     {--bc:#94a3b8;}
 
-  .stars-display { display:flex; align-items:center; gap:4px; flex-shrink:0; }
-  .stars-display .s { font-size:14px; }
-  .stars-display .avg { font-weight:700; font-size:14px; color:var(--accent2); margin-left:2px; }
-  .stars-display .count { font-size:11px; color:var(--muted); }
+.lec-card.block-cardio{border-left:3px solid var(--bc);}
+.lec-card.block-msk   {border-left:3px solid var(--bc);}
+.lec-card.block-neuro {border-left:3px solid var(--bc);}
+.lec-card.block-resp  {border-left:3px solid var(--bc);}
+.lec-card.block-gi    {border-left:3px solid var(--bc);}
+.lec-card.block-renal {border-left:3px solid var(--bc);}
+.lec-card.block-endo  {border-left:3px solid var(--bc);}
+.lec-card.block-hemato{border-left:3px solid var(--bc);}
+.lec-card.block-repro {border-left:3px solid var(--bc);}
+.lec-card.block-immuno{border-left:3px solid var(--bc);}
+.lec-card.block-other {border-left:3px solid var(--bc);}
 
-  .lec-tip { font-size:13px; color:var(--muted); line-height:1.5; margin-top:8px; border-top:1px solid var(--border); padding-top:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-
-  .modal-overlay { position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s; }
-  .modal-overlay.open { opacity:1; pointer-events:all; }
-  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; padding:28px; transform:translateY(20px); transition:transform 0.25s; }
-  .modal-overlay.open .modal { transform:translateY(0); }
-  .modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
-  .modal-header h2 { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; line-height:1.2; max-width:80%; }
-  .close-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color 0.2s; }
-  .close-btn:hover { color:var(--text); }
-  .modal-ratings { display:flex; gap:20px; flex-wrap:wrap; padding:16px; border-radius:12px; background:var(--surface2); margin-bottom:20px; }
-  .rating-block { text-align:center; }
-  .rating-block .big-star { font-size:28px; }
-  .rating-block .label { font-size:11px; color:var(--muted); margin-top:2px; }
-  .reviews-section h3 { font-size:14px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:14px; }
-  .review-item { background:var(--bg); border-radius:10px; padding:14px 16px; margin-bottom:10px; border:1px solid var(--border); }
-  .review-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .reviewer-name { font-size:13px; font-weight:600; color:var(--accent); }
-  .review-stars { font-size:13px; }
-  .review-tip { font-size:14px; line-height:1.6; color:var(--text); }
-  .review-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-  .review-tag { font-size:11px; padding:3px 9px; border-radius:10px; background:rgba(62,207,142,0.1); color:var(--accent); border:1px solid rgba(62,207,142,0.2); }
-  .review-date { font-size:11px; color:var(--muted); margin-top:4px; }
-
-  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
-  .empty-state .big { font-size:48px; margin-bottom:12px; }
-  .empty-state p { font-size:15px; }
-
-  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; text-align:center; }
-  .stat-card .num { font-family:'Playfair Display',serif; font-size:36px; font-weight:900; color:var(--accent); line-height:1; margin-bottom:4px; }
-  .stat-card .lbl { font-size:13px; color:var(--muted); }
-
-  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--accent); color:#0a0c10; padding:12px 24px; border-radius:30px; font-weight:700; font-size:14px; transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1); z-index:9999; pointer-events:none; }
-  .toast.show { transform:translateX(-50%) translateY(0); }
-
-  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-
-  .difficulty-bar { height:6px; border-radius:3px; flex:1; background:var(--surface2); overflow:hidden; }
-  .difficulty-fill { height:100%; border-radius:3px; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width 0.6s ease; }
-
-  .spinner { width:20px; height:20px; border:2px solid rgba(62,207,142,0.3); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; vertical-align:middle; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-
-  .loading-screen { text-align:center; padding:80px 20px; color:var(--muted); }
-  .loading-screen .spinner { width:36px; height:36px; margin-bottom:16px; }
+.lec-card:hover{border-color:rgba(255,255,255,0.12);}
+.meta-pill.block{color:var(--bc) !important;}
+.block-dot{width:8px;height:8px;border-radius:50%;background:var(--bc);display:inline-block;margin-right:6px;vertical-align:middle;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Med<span>Notes</span></div>
-  <div class="badge">KSAU · MEDICINE</div>
+  <div class="logo" onclick="switchTab('browse')">Med<span>Notes</span></div>
+  <div class="header-right">
+    <div class="badge">KSAU · MEDICINE</div>
+    <button class="admin-btn" onclick="openAdmin()">⚙️ Admin</button>
+  </div>
 </header>
 
 <main>
   <div class="hero">
     <h1>Rate your lectures.<br><em>Help your crew.</em></h1>
-    <p>Leave honest ratings and tips for every lecture — so your friends know exactly what to expect before they open their notes.</p>
+    <p>Honest ratings and tips for every lecture — organized by block and subject.</p>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('browse')">📚 Browse Lectures</button>
-    <button class="tab" onclick="switchTab('submit')">✍️ Submit Review</button>
-    <button class="tab" onclick="switchTab('stats')">📊 Stats</button>
+  <div class="nav">
+    <button class="nav-tab active" onclick="switchTab('browse')">📚 Browse</button>
+    <button class="nav-tab" onclick="switchTab('submit')">✍️ Submit</button>
+    <button class="nav-tab" onclick="switchTab('stats')">📊 Stats</button>
   </div>
 
   <!-- BROWSE -->
   <div class="panel active" id="panel-browse">
-    <div class="search-bar">
-      <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Search lecture title or subject…" id="searchInput" oninput="renderLectures()">
+    <div class="search-row">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search lectures…" oninput="renderLectures()">
+      </div>
     </div>
-    <div class="filters" id="subjectFilters"></div>
+
+    <div class="section-label">Filter by Block</div>
+    <div class="block-filters" id="blockFilters"></div>
+
+    <div class="subject-filters" id="subjectFilters" style="display:none"></div>
+
     <div class="lecture-grid" id="lectureGrid">
-      <div class="loading-screen"><div class="spinner"></div><p>Loading lectures…</p></div>
+      <div class="loading-screen"><div class="spinner spinner-lg" style="margin-bottom:14px"></div><p>Loading…</p></div>
     </div>
   </div>
 
   <!-- SUBMIT -->
   <div class="panel" id="panel-submit">
     <div class="card">
-      <h2><span class="icon">📝</span>Add a Lecture Review</h2>
+      <h2>📝 Add a Lecture Review</h2>
       <div class="form-grid">
         <div class="field">
           <label>Your Name / Nickname</label>
-          <input type="text" id="reviewer" placeholder="e.g. Turki, anonymouse…">
+          <input type="text" id="reviewer" placeholder="e.g. Turki, Anonymouse…">
         </div>
         <div class="field">
-          <label>Subject / Block</label>
-          <select id="subject">
-            <option value="">— Select subject —</option>
-            <option>Anatomy</option>
-            <option>Physiology</option>
-            <option>Biochemistry</option>
-            <option>Histology</option>
-            <option>Pathology</option>
-            <option>Microbiology</option>
-            <option>Pharmacology</option>
-            <option>Immunology</option>
-            <option>Clinical Skills</option>
-            <option>Other</option>
+          <label>Block (Main Category)</label>
+          <select id="block" onchange="updateSubjects()">
+            <option value="">— Select block —</option>
+            <option value="Cardiology">❤️ Cardiology</option>
+            <option value="Musculoskeletal">🦴 Musculoskeletal</option>
+            <option value="Neurology">🧠 Neurology</option>
+            <option value="Respiratory">🫁 Respiratory</option>
+            <option value="Gastrointestinal">🫀 Gastrointestinal</option>
+            <option value="Renal">💧 Renal</option>
+            <option value="Endocrine">⚗️ Endocrine</option>
+            <option value="Hematology">🩸 Hematology</option>
+            <option value="Reproductive">🔬 Reproductive</option>
+            <option value="Immunology">🛡️ Immunology</option>
+            <option value="Other">📦 Other</option>
           </select>
         </div>
-        <div class="field full">
+        <div class="field">
+          <label>Subject (Sub-category)</label>
+          <select id="subject">
+            <option value="">— Select block first —</option>
+          </select>
+        </div>
+        <div class="field">
           <label>Lecture Title</label>
           <input type="text" id="lectureTitle" placeholder="e.g. Brachial Plexus – Dr. Ahmed">
         </div>
         <div class="field full">
           <label>Overall Rating</label>
           <div class="star-group" id="overallStars">
-            <span class="star" data-val="1">⭐</span>
-            <span class="star" data-val="2">⭐</span>
-            <span class="star" data-val="3">⭐</span>
-            <span class="star" data-val="4">⭐</span>
-            <span class="star" data-val="5">⭐</span>
-            <span style="margin-left:8px;font-size:13px;color:var(--muted)" id="overallLabel">Tap to rate</span>
+            <span class="star" data-val="1">⭐</span><span class="star" data-val="2">⭐</span><span class="star" data-val="3">⭐</span><span class="star" data-val="4">⭐</span><span class="star" data-val="5">⭐</span>
+            <span class="star-lbl" id="overallLabel">Tap to rate</span>
           </div>
         </div>
         <div class="field full">
           <label>Difficulty Level</label>
           <div class="star-group" id="diffStars">
-            <span class="star" data-val="1">🔥</span>
-            <span class="star" data-val="2">🔥</span>
-            <span class="star" data-val="3">🔥</span>
-            <span class="star" data-val="4">🔥</span>
-            <span class="star" data-val="5">🔥</span>
-            <span style="margin-left:8px;font-size:13px;color:var(--muted)" id="diffLabel">Tap to rate</span>
+            <span class="star" data-val="1">🔥</span><span class="star" data-val="2">🔥</span><span class="star" data-val="3">🔥</span><span class="star" data-val="4">🔥</span><span class="star" data-val="5">🔥</span>
+            <span class="star-lbl" id="diffLabel">Tap to rate</span>
           </div>
         </div>
         <div class="field full">
-          <label>Tags (pick all that apply)</label>
+          <label>Tags</label>
           <div class="tag-group" id="tagGroup">
             <button type="button" class="tag" data-tag="High-yield">🎯 High-yield</button>
-            <button type="button" class="tag" data-tag="Read slides only">📑 Read slides only</button>
+            <button type="button" class="tag" data-tag="Read slides only">📑 Slides only</button>
             <button type="button" class="tag" data-tag="Must attend">🏛 Must attend</button>
-            <button type="button" class="tag" data-tag="Recording is enough">🎥 Recording is enough</button>
-            <button type="button" class="tag" data-tag="Memorization heavy">🧠 Memorization heavy</button>
+            <button type="button" class="tag" data-tag="Recording is enough">🎥 Recording ok</button>
+            <button type="button" class="tag" data-tag="Memorization heavy">🧠 Memorization</button>
             <button type="button" class="tag" data-tag="Concept-based">💡 Concept-based</button>
-            <button type="button" class="tag" data-tag="Clinical relevance">🏥 Clinical relevance</button>
+            <button type="button" class="tag" data-tag="Clinical relevance">🏥 Clinical</button>
             <button type="button" class="tag" data-tag="Confusing">😵 Confusing</button>
+            <button type="button" class="tag" data-tag="Short lecture">⚡ Short</button>
           </div>
         </div>
         <div class="field full">
           <label>Tips for Friends</label>
-          <textarea id="tipText" placeholder="e.g. Focus on the last 10 slides, the first half is not important. The nerve supply tables will definitely show up in the exam…"></textarea>
+          <textarea id="tipText" placeholder="What should they focus on? What will come in the exam? Any study tricks?"></textarea>
         </div>
       </div>
       <button class="btn-submit" id="submitBtn" onclick="submitReview()">Submit Review →</button>
@@ -269,21 +326,14 @@
 
   <!-- STATS -->
   <div class="panel" id="panel-stats">
-    <div class="stats-grid" id="statsGrid"></div>
-    <div class="card" id="topLecCard" style="display:none">
-      <h2><span class="icon">🏆</span>Top Rated Lectures</h2>
-      <div id="topLecList"></div>
-    </div>
-    <div class="card" id="hardLecCard" style="display:none">
-      <h2><span class="icon">🔥</span>Hardest Lectures</h2>
-      <div id="hardLecList"></div>
-    </div>
+    <div class="stats-grid" id="statsGrid"><div class="loading-screen"><div class="spinner spinner-lg"></div></div></div>
+    <div id="statsCharts"></div>
   </div>
 </main>
 
-<!-- MODAL -->
+<!-- LECTURE MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" id="modal">
+  <div class="modal">
     <div class="modal-header">
       <h2 id="modalTitle"></h2>
       <button class="close-btn" onclick="closeModalDirect()">✕</button>
@@ -292,82 +342,149 @@
   </div>
 </div>
 
+<!-- ADMIN OVERLAY -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-panel">
+    <div class="admin-top">
+      <h2>⚙️ Admin <span>Panel</span></h2>
+      <button class="close-btn" onclick="closeAdminPanel()">✕</button>
+    </div>
+    <div id="adminContent">
+      <!-- Login or panel -->
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ── SUPABASE ──
+// ── CONFIG ──
 const SUPABASE_URL = 'https://gulnhqfllbdskiwrttvz.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bG5ocWZsbGJkc2tpd3J0dHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTIyOTksImV4cCI6MjA5MDE2ODI5OX0.xV5lbcKuDqBAY6iKRSxEm3y_0idNjBNOngzxy4IoGQg';
+const ADMIN_PASSWORD = 'Sdqq6655';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── BLOCKS & SUBJECTS ──
+const BLOCKS = {
+  'Cardiology':       { emoji:'❤️',  cls:'block-cardio',  subjects:['Anatomy','Physiology','Pharmacology','Pathology','Clinical Skills','Biochemistry'] },
+  'Musculoskeletal':  { emoji:'🦴',  cls:'block-msk',     subjects:['Anatomy','Physiology','Pharmacology','Pathology','Histology','Biochemistry'] },
+  'Neurology':        { emoji:'🧠',  cls:'block-neuro',   subjects:['Anatomy','Physiology','Pharmacology','Pathology','Clinical Skills','Histology'] },
+  'Respiratory':      { emoji:'🫁',  cls:'block-resp',    subjects:['Anatomy','Physiology','Pharmacology','Pathology','Microbiology','Clinical Skills'] },
+  'Gastrointestinal': { emoji:'🫀',  cls:'block-gi',      subjects:['Anatomy','Physiology','Pharmacology','Pathology','Microbiology','Biochemistry'] },
+  'Renal':            { emoji:'💧',  cls:'block-renal',   subjects:['Anatomy','Physiology','Pharmacology','Pathology','Biochemistry'] },
+  'Endocrine':        { emoji:'⚗️', cls:'block-endo',    subjects:['Physiology','Pharmacology','Pathology','Biochemistry','Clinical Skills'] },
+  'Hematology':       { emoji:'🩸',  cls:'block-hemato',  subjects:['Physiology','Pharmacology','Pathology','Biochemistry','Histology'] },
+  'Reproductive':     { emoji:'🔬',  cls:'block-repro',   subjects:['Anatomy','Physiology','Pharmacology','Pathology','Histology'] },
+  'Immunology':       { emoji:'🛡️', cls:'block-immuno',  subjects:['Immunology','Microbiology','Pharmacology','Pathology'] },
+  'Other':            { emoji:'📦',  cls:'block-other',   subjects:['Anatomy','Physiology','Pharmacology','Pathology','Biochemistry','Histology','Microbiology','Immunology','Clinical Skills','Other'] },
+};
 
 // ── STATE ──
 let allReviews = [];
 let overallRating = 0, diffRating = 0, selectedTags = [];
-let activeSubjectFilter = 'All';
+let activeBlock = 'All', activeSubject = 'All';
+let adminAuthed = false;
+let editingId = null;
 
 // ── INIT ──
 (async () => {
   await fetchReviews();
   initStars();
   initTags();
+  renderBlockFilters();
 })();
 
 async function fetchReviews() {
-  const { data, error } = await sb
-    .from('reviews')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) { showToast('⚠️ Could not load reviews'); console.error(error); return; }
+  const { data, error } = await sb.from('reviews').select('*').order('created_at', { ascending: false });
+  if (error) { showToast('⚠️ Could not connect to database', true); return; }
   allReviews = data || [];
   renderLectures();
 }
 
-// ── GROUP reviews by lecture ──
+// ── SUBJECT DROPDOWN (form) ──
+function updateSubjects() {
+  const block = document.getElementById('block').value;
+  const sel = document.getElementById('subject');
+  sel.innerHTML = '<option value="">— Select subject —</option>';
+  if (block && BLOCKS[block]) {
+    BLOCKS[block].subjects.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      sel.appendChild(o);
+    });
+  }
+}
+
+// ── BLOCK FILTERS ──
+function renderBlockFilters() {
+  const blocks = ['All', ...Object.keys(BLOCKS)];
+  document.getElementById('blockFilters').innerHTML = blocks.map(b => {
+    const info = BLOCKS[b];
+    const dot = info ? `<span class="dot" style="background:var(--${info.cls.replace('block-','bc-') || 'bc'}); background:${getBlockColor(b)}"></span>` : '';
+    return `<button class="block-pill ${b === activeBlock ? 'active' : ''}" onclick="setBlockFilter('${b}')">${info ? info.emoji + ' ' : ''}${b}</button>`;
+  }).join('');
+}
+
+function getBlockColor(block) {
+  const map = { Cardiology:'#e05c5c', Musculoskeletal:'#3ecf8e', Neurology:'#a78bfa', Respiratory:'#38bdf8', Gastrointestinal:'#fb923c', Renal:'#f472b6', Endocrine:'#facc15', Hematology:'#34d399', Reproductive:'#f9a8d4', Immunology:'#60a5fa', Other:'#94a3b8' };
+  return map[block] || '#3ecf8e';
+}
+
+function setBlockFilter(block) {
+  activeBlock = block;
+  activeSubject = 'All';
+  renderBlockFilters();
+  renderSubjectFilters();
+  renderLectures();
+}
+
+function renderSubjectFilters() {
+  const el = document.getElementById('subjectFilters');
+  if (activeBlock === 'All' || !BLOCKS[activeBlock]) { el.style.display = 'none'; return; }
+  
+  const usedSubjects = [...new Set(allReviews.filter(r => r.block === activeBlock).map(r => r.subject))];
+  if (!usedSubjects.length) { el.style.display = 'none'; return; }
+
+  el.style.display = 'flex';
+  el.innerHTML = ['All', ...usedSubjects].map(s =>
+    `<button class="subj-pill ${s === activeSubject ? 'active' : ''}" onclick="setSubjectFilter('${s}')">${s}</button>`
+  ).join('');
+}
+
+function setSubjectFilter(subject) {
+  activeSubject = subject;
+  renderSubjectFilters();
+  renderLectures();
+}
+
+// ── GROUP ──
 function groupedLectures() {
   const map = {};
   allReviews.forEach(r => {
-    const key = `${r.subject}__${r.lecture_title}`;
-    if (!map[key]) map[key] = { subject: r.subject, title: r.lecture_title, reviews: [] };
+    const key = `${r.block}||${r.subject}||${r.lecture_title}`;
+    if (!map[key]) map[key] = { block: r.block, subject: r.subject, title: r.lecture_title, reviews: [] };
     map[key].reviews.push(r);
   });
   return Object.values(map);
 }
 
-function avgRating(lec) {
+function avg(lec, field) {
   if (!lec.reviews.length) return 0;
-  return lec.reviews.reduce((s, r) => s + r.overall, 0) / lec.reviews.length;
-}
-function avgDiff(lec) {
-  if (!lec.reviews.length) return 0;
-  return lec.reviews.reduce((s, r) => s + r.difficulty, 0) / lec.reviews.length;
+  return lec.reviews.reduce((s,r) => s + r[field], 0) / lec.reviews.length;
 }
 
-// ── TABS ──
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', ['browse','submit','stats'][i] === tab);
-  });
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + tab).classList.add('active');
-  if (tab === 'browse') { fetchReviews(); }
-  if (tab === 'stats')  { fetchReviews().then(renderStats); }
-}
-
-// ── RENDER LECTURES ──
+// ── RENDER ──
 function renderLectures() {
   const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const lectures = groupedLectures();
-
-  const subjects = ['All', ...new Set(lectures.map(l => l.subject))];
-  document.getElementById('subjectFilters').innerHTML = subjects.map(s =>
-    `<button class="filter-btn ${s === activeSubjectFilter ? 'active' : ''}" onclick="setFilter('${s}')">${s}</button>`
-  ).join('');
+  renderSubjectFilters();
 
   let filtered = lectures.filter(l => {
-    const matchSearch = l.title.toLowerCase().includes(query) || l.subject.toLowerCase().includes(query);
-    const matchSub = activeSubjectFilter === 'All' || l.subject === activeSubjectFilter;
-    return matchSearch && matchSub;
-  }).sort((a, b) => avgRating(b) - avgRating(a));
+    const matchQuery   = l.title.toLowerCase().includes(query) || l.subject.toLowerCase().includes(query) || (l.block||'').toLowerCase().includes(query);
+    const matchBlock   = activeBlock === 'All' || l.block === activeBlock;
+    const matchSubject = activeSubject === 'All' || l.subject === activeSubject;
+    return matchQuery && matchBlock && matchSubject;
+  }).sort((a,b) => avg(b,'overall') - avg(a,'overall'));
 
   const grid = document.getElementById('lectureGrid');
   if (!filtered.length) {
@@ -376,46 +493,44 @@ function renderLectures() {
   }
 
   grid.innerHTML = filtered.map(l => {
-    const avg  = avgRating(l).toFixed(1);
-    const diff = avgDiff(l).toFixed(1);
+    const blockInfo = BLOCKS[l.block] || BLOCKS['Other'];
+    const cls = blockInfo.cls;
+    const color = getBlockColor(l.block);
+    const avgO = avg(l,'overall').toFixed(1);
+    const avgD = avg(l,'difficulty').toFixed(1);
     const count = l.reviews.length;
     const lastTip = l.reviews[0]?.tip || '';
-    const safeSubject = encodeURIComponent(l.subject);
-    const safeTitle   = encodeURIComponent(l.title);
+    const sB = encodeURIComponent(l.block);
+    const sS = encodeURIComponent(l.subject);
+    const sT = encodeURIComponent(l.title);
     return `
-      <div class="lec-card" onclick="openModal('${safeSubject}','${safeTitle}')">
+      <div class="lec-card ${cls}" onclick="openModal('${sB}','${sS}','${sT}')">
         <div class="lec-header">
           <div class="lec-title">${l.title}</div>
-          <div class="stars-display">
-            <span class="s">⭐</span>
-            <span class="avg">${avg}</span>
-            <span class="count">(${count})</span>
-          </div>
+          <div class="stars-display">⭐<span class="avg">${avgO}</span><span class="cnt">(${count})</span></div>
         </div>
         <div class="lec-meta">
+          <span class="meta-pill block" style="color:${color}!important">${blockInfo.emoji} ${l.block}</span>
           <span class="meta-pill">${l.subject}</span>
-          <span class="meta-pill">🔥 ${diff} difficulty</span>
-          <span class="meta-pill">${count} review${count > 1 ? 's' : ''}</span>
+          <span class="meta-pill">🔥 ${avgD}</span>
+          <span class="meta-pill">${count} review${count>1?'s':''}</span>
         </div>
         ${lastTip ? `<div class="lec-tip">💡 ${lastTip}</div>` : ''}
       </div>`;
   }).join('');
 }
 
-function setFilter(subject) {
-  activeSubjectFilter = subject;
-  renderLectures();
-}
-
 // ── MODAL ──
-function openModal(safeSubject, safeTitle) {
-  const subject = decodeURIComponent(safeSubject);
-  const title   = decodeURIComponent(safeTitle);
-  const lec = groupedLectures().find(l => l.subject === subject && l.title === title);
+function openModal(sB, sS, sT) {
+  const block = decodeURIComponent(sB);
+  const subject = decodeURIComponent(sS);
+  const title = decodeURIComponent(sT);
+  const lec = groupedLectures().find(l => l.block === block && l.subject === subject && l.title === title);
   if (!lec) return;
 
-  const avg  = avgRating(lec).toFixed(1);
-  const diff = avgDiff(lec).toFixed(1);
+  const avgO = avg(lec,'overall').toFixed(1);
+  const avgD = avg(lec,'difficulty').toFixed(1);
+  const blockInfo = BLOCKS[lec.block] || BLOCKS['Other'];
 
   const tagFreq = {};
   lec.reviews.forEach(r => (r.tags||[]).forEach(t => tagFreq[t] = (tagFreq[t]||0)+1));
@@ -424,16 +539,15 @@ function openModal(safeSubject, safeTitle) {
   document.getElementById('modalTitle').textContent = title;
   let body = `
     <div class="modal-ratings">
-      <div class="rating-block"><div class="big-star">⭐ ${avg}</div><div class="label">Overall (${lec.reviews.length} reviews)</div></div>
-      <div class="rating-block"><div class="big-star">🔥 ${diff}</div><div class="label">Difficulty</div></div>
-      <div class="rating-block"><div class="big-star">📚</div><div class="label">${subject}</div></div>
+      <div class="rating-block"><div class="big">⭐ ${avgO}</div><div class="lbl">Overall · ${lec.reviews.length} reviews</div></div>
+      <div class="rating-block"><div class="big">🔥 ${avgD}</div><div class="lbl">Difficulty</div></div>
+      <div class="rating-block"><div class="big">${blockInfo.emoji}</div><div class="lbl">${lec.block}</div></div>
+      <div class="rating-block"><div class="big">📚</div><div class="lbl">${lec.subject}</div></div>
     </div>`;
 
-  if (topTags.length) {
-    body += `<div class="review-tags" style="margin-bottom:16px">${topTags.map(([t,c])=>`<span class="review-tag">${t} ×${c}</span>`).join('')}</div>`;
-  }
+  if (topTags.length) body += `<div class="review-tags" style="margin-bottom:16px">${topTags.map(([t,c])=>`<span class="review-tag">${t} ×${c}</span>`).join('')}</div>`;
 
-  body += `<div class="reviews-section"><h3>${lec.reviews.length} Review${lec.reviews.length>1?'s':''}</h3>`;
+  body += `<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">${lec.reviews.length} Review${lec.reviews.length>1?'s':''}</div>`;
   body += lec.reviews.map(r => `
     <div class="review-item">
       <div class="review-top">
@@ -444,7 +558,6 @@ function openModal(safeSubject, safeTitle) {
       ${(r.tags||[]).length ? `<div class="review-tags">${r.tags.map(t=>`<span class="review-tag">${t}</span>`).join('')}</div>` : ''}
       <div class="review-date">${new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
     </div>`).join('');
-  body += `</div>`;
 
   document.getElementById('modalBody').innerHTML = body;
   document.getElementById('modalOverlay').classList.add('open');
@@ -453,22 +566,28 @@ function openModal(safeSubject, safeTitle) {
 function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalDirect(); }
 function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); }
 
-// ── STARS ──
-function initStars() {
-  const overallLabels = ['Poor 😕','Fair 😐','Good 👍','Great 😄','Excellent 🌟'];
-  const diffLabels    = ['Very Easy 😴','Easy 🙂','Moderate 🤔','Hard 😰','Brutal 🤯'];
-
-  setupStarGroup('overallStars', 'overallLabel', overallLabels, v => overallRating = v);
-  setupStarGroup('diffStars',    'diffLabel',    diffLabels,    v => diffRating    = v);
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach((t,i) => t.classList.toggle('active', ['browse','submit','stats'][i] === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if (tab === 'browse') fetchReviews();
+  if (tab === 'stats') { fetchReviews().then(renderStats); }
 }
 
-function setupStarGroup(groupId, labelId, labels, setter) {
-  document.getElementById(groupId).querySelectorAll('.star').forEach(s => {
+// ── STARS ──
+function initStars() {
+  const oL = ['Poor 😕','Fair 😐','Good 👍','Great 😄','Excellent 🌟'];
+  const dL = ['Very Easy 😴','Easy 🙂','Moderate 🤔','Hard 😰','Brutal 🤯'];
+  setupStars('overallStars','overallLabel',oL,v=>overallRating=v);
+  setupStars('diffStars','diffLabel',dL,v=>diffRating=v);
+}
+function setupStars(gId, lId, labels, setter) {
+  document.getElementById(gId).querySelectorAll('.star').forEach(s => {
     s.addEventListener('click', () => {
-      const val = +s.dataset.val;
-      setter(val);
-      document.getElementById(groupId).querySelectorAll('.star').forEach(x => x.classList.toggle('lit', +x.dataset.val <= val));
-      document.getElementById(labelId).textContent = labels[val-1];
+      const v = +s.dataset.val; setter(v);
+      document.getElementById(gId).querySelectorAll('.star').forEach(x => x.classList.toggle('lit', +x.dataset.val <= v));
+      document.getElementById(lId).textContent = labels[v-1];
     });
   });
 }
@@ -478,13 +597,7 @@ function initTags() {
   document.getElementById('tagGroup').querySelectorAll('.tag').forEach(t => {
     t.addEventListener('click', () => {
       const tag = t.dataset.tag;
-      if (selectedTags.includes(tag)) {
-        selectedTags = selectedTags.filter(x => x !== tag);
-        t.classList.remove('selected');
-      } else {
-        selectedTags.push(tag);
-        t.classList.add('selected');
-      }
+      selectedTags.includes(tag) ? (selectedTags = selectedTags.filter(x=>x!==tag), t.classList.remove('selected')) : (selectedTags.push(tag), t.classList.add('selected'));
     });
   });
 }
@@ -492,38 +605,33 @@ function initTags() {
 // ── SUBMIT ──
 async function submitReview() {
   const reviewer = document.getElementById('reviewer').value.trim();
+  const block    = document.getElementById('block').value;
   const subject  = document.getElementById('subject').value;
   const title    = document.getElementById('lectureTitle').value.trim();
   const tip      = document.getElementById('tipText').value.trim();
 
-  if (!reviewer || !subject || !title || !overallRating || !diffRating) {
-    showToast('⚠️ Please fill in all fields and ratings'); return;
+  if (!reviewer || !block || !subject || !title || !overallRating || !diffRating) {
+    showToast('⚠️ Please fill in all fields and ratings', true); return;
   }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Saving…';
 
-  const { error } = await sb.from('reviews').insert({
-    reviewer, subject, lecture_title: title,
-    overall: overallRating, difficulty: diffRating,
-    tags: selectedTags, tip
-  });
-
+  const { error } = await sb.from('reviews').insert({ reviewer, block, subject, lecture_title: title, overall: overallRating, difficulty: diffRating, tags: selectedTags, tip });
   if (error) {
-    showToast('❌ Error saving. Try again.'); console.error(error);
+    showToast('❌ Error saving. Try again.', true);
     btn.disabled = false; btn.textContent = 'Submit Review →'; return;
   }
 
-  // Reset form
   overallRating = 0; diffRating = 0; selectedTags = [];
   ['reviewer','lectureTitle','tipText'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('subject').value = '';
+  document.getElementById('block').value = '';
+  document.getElementById('subject').innerHTML = '<option value="">— Select block first —</option>';
   document.querySelectorAll('.star').forEach(s => s.classList.remove('lit'));
   document.getElementById('overallLabel').textContent = 'Tap to rate';
   document.getElementById('diffLabel').textContent = 'Tap to rate';
   document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
-
   btn.disabled = false; btn.textContent = 'Submit Review →';
   showToast('✅ Review submitted!');
   switchTab('browse');
@@ -532,53 +640,165 @@ async function submitReview() {
 // ── STATS ──
 async function renderStats() {
   const lectures = groupedLectures();
-  const totalReviews = allReviews.length;
-  const subjects = new Set(allReviews.map(r => r.subject)).size;
-  const allRatingsArr = allReviews.map(r => r.overall);
-  const globalAvg = allRatingsArr.length ? (allRatingsArr.reduce((a,b)=>a+b,0)/allRatingsArr.length).toFixed(1) : '—';
+  const total = allReviews.length;
+  const blocks = new Set(allReviews.map(r=>r.block)).size;
+  const globalAvg = total ? (allReviews.reduce((s,r)=>s+r.overall,0)/total).toFixed(1) : '—';
 
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card"><div class="num">${lectures.length}</div><div class="lbl">Lectures Rated</div></div>
-    <div class="stat-card"><div class="num">${totalReviews}</div><div class="lbl">Total Reviews</div></div>
-    <div class="stat-card"><div class="num">${subjects}</div><div class="lbl">Subjects Covered</div></div>
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total Reviews</div></div>
+    <div class="stat-card"><div class="num">${blocks}</div><div class="lbl">Blocks Covered</div></div>
     <div class="stat-card"><div class="num">${globalAvg}</div><div class="lbl">Avg Rating ⭐</div></div>
   `;
 
-  if (!lectures.length) return;
+  if (!lectures.length) { document.getElementById('statsCharts').innerHTML = ''; return; }
 
-  const sorted  = [...lectures].sort((a,b) => avgRating(b) - avgRating(a));
-  const hardest = [...lectures].sort((a,b) => avgDiff(b) - avgDiff(a));
+  const sorted  = [...lectures].sort((a,b)=>avg(b,'overall')-avg(a,'overall'));
+  const hardest = [...lectures].sort((a,b)=>avg(b,'difficulty')-avg(a,'difficulty'));
 
-  document.getElementById('topLecCard').style.display = '';
-  document.getElementById('topLecList').innerHTML = sorted.slice(0,5).map((l,i) => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--accent);width:28px">${i+1}</span>
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:14px">${l.title}</div>
-        <div style="font-size:12px;color:var(--muted)">${l.subject} · ${l.reviews.length} review${l.reviews.length>1?'s':''}</div>
-      </div>
-      <span style="color:var(--accent2);font-weight:700">⭐ ${avgRating(l).toFixed(1)}</span>
-    </div>`).join('');
+  document.getElementById('statsCharts').innerHTML = `
+    <div class="card" style="margin-bottom:18px">
+      <h2>🏆 Top Rated</h2>
+      ${sorted.slice(0,5).map((l,i)=>{
+        const bi = BLOCKS[l.block]||BLOCKS['Other'];
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--accent);width:26px">${i+1}</span>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${l.title}</div>
+            <div style="font-size:11px;color:var(--muted)">${bi.emoji} ${l.block} · ${l.subject}</div>
+          </div>
+          <span style="color:var(--accent2);font-weight:700;font-size:13px">⭐ ${avg(l,'overall').toFixed(1)}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card">
+      <h2>🔥 Hardest Lectures</h2>
+      ${hardest.slice(0,5).map((l,i)=>{
+        const bi = BLOCKS[l.block]||BLOCKS['Other'];
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--accent3);width:26px">${i+1}</span>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${l.title}</div>
+            <div style="font-size:11px;color:var(--muted)">${bi.emoji} ${l.block} · ${l.subject}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="diff-bar" style="width:70px"><div class="diff-fill" style="width:${(avg(l,'difficulty')/5*100).toFixed(0)}%"></div></div>
+            <span style="color:var(--accent3);font-weight:700;font-size:12px">🔥${avg(l,'difficulty').toFixed(1)}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
 
-  document.getElementById('hardLecCard').style.display = '';
-  document.getElementById('hardLecList').innerHTML = hardest.slice(0,5).map((l,i) => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--accent3);width:28px">${i+1}</span>
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:14px">${l.title}</div>
-        <div style="font-size:12px;color:var(--muted)">${l.subject}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="difficulty-bar" style="width:80px"><div class="difficulty-fill" style="width:${(avgDiff(l)/5*100).toFixed(0)}%"></div></div>
-        <span style="color:var(--accent3);font-weight:700;font-size:13px">🔥${avgDiff(l).toFixed(1)}</span>
-      </div>
-    </div>`).join('');
+// ── ADMIN ──
+function openAdmin() {
+  document.getElementById('adminOverlay').classList.add('open');
+  if (adminAuthed) renderAdminPanel();
+  else renderAdminLogin();
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+
+function renderAdminLogin() {
+  document.getElementById('adminContent').innerHTML = `
+    <div class="login-box">
+      <h2>Admin Access</h2>
+      <p>Enter the admin password to manage reviews</p>
+      <input type="password" id="adminPass" placeholder="Password…" onkeydown="if(event.key==='Enter')checkAdminPass()">
+      <button class="btn-submit" style="margin-top:12px" onclick="checkAdminPass()">Enter →</button>
+      <div class="login-error" id="loginErr"></div>
+    </div>`;
+}
+
+function checkAdminPass() {
+  const val = document.getElementById('adminPass').value;
+  if (val === ADMIN_PASSWORD) {
+    adminAuthed = true;
+    renderAdminPanel();
+  } else {
+    document.getElementById('loginErr').textContent = '❌ Wrong password. Try again.';
+  }
+}
+
+async function renderAdminPanel(search = '') {
+  await fetchReviews();
+  const filtered = search
+    ? allReviews.filter(r => r.lecture_title.toLowerCase().includes(search) || r.reviewer.toLowerCase().includes(search) || (r.block||'').toLowerCase().includes(search))
+    : allReviews;
+
+  document.getElementById('adminContent').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:13px;color:var(--muted)">${filtered.length} review${filtered.length!==1?'s':''} total</span>
+      <button onclick="adminAuthed=false;renderAdminLogin()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Log out</button>
+    </div>
+    <div class="admin-search">
+      <div class="search-wrap" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="Search reviews…" value="${search}" oninput="renderAdminPanel(this.value)" style="padding-left:36px"></div>
+    </div>
+    ${filtered.length === 0 ? '<div class="empty-state"><div class="big">🔍</div><p>No reviews found.</p></div>' :
+      filtered.map(r => `
+        <div class="review-row" id="row-${r.id}">
+          <div class="review-row-info">
+            <div class="review-row-title">${r.lecture_title}</div>
+            <div class="review-row-meta">${r.block||''} · ${r.subject} · by <strong>${r.reviewer}</strong> · ⭐${r.overall} 🔥${r.difficulty} · ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+            <div id="tip-display-${r.id}" class="review-row-tip">${r.tip || '<span style="color:var(--muted);font-style:italic">No tip</span>'}</div>
+            <div id="tip-edit-${r.id}" style="display:none">
+              <textarea id="tip-input-${r.id}" style="width:100%;margin-top:8px;font-size:12px;min-height:70px">${r.tip||''}</textarea>
+            </div>
+          </div>
+          <div class="review-row-actions">
+            <button class="btn-edit-save" id="edit-btn-${r.id}" onclick="toggleEdit('${r.id}')">✏️ Edit</button>
+            <button class="btn-delete" onclick="deleteReview('${r.id}')">🗑 Delete</button>
+          </div>
+        </div>`).join('')
+    }`;
+}
+
+function toggleEdit(id) {
+  const display = document.getElementById(`tip-display-${id}`);
+  const editBox = document.getElementById(`tip-edit-${id}`);
+  const btn = document.getElementById(`edit-btn-${id}`);
+  if (editBox.style.display === 'none') {
+    display.style.display = 'none';
+    editBox.style.display = 'block';
+    btn.textContent = '💾 Save';
+    btn.onclick = () => saveEdit(id);
+  } else {
+    display.style.display = 'block';
+    editBox.style.display = 'none';
+    btn.textContent = '✏️ Edit';
+    btn.onclick = () => toggleEdit(id);
+  }
+}
+
+async function saveEdit(id) {
+  const newTip = document.getElementById(`tip-input-${id}`).value.trim();
+  const btn = document.getElementById(`edit-btn-${id}`);
+  btn.textContent = '…'; btn.disabled = true;
+  const { error } = await sb.from('reviews').update({ tip: newTip }).eq('id', id);
+  if (error) { showToast('❌ Save failed', true); btn.textContent = '💾 Save'; btn.disabled = false; return; }
+  showToast('✅ Saved!');
+  await renderAdminPanel();
+}
+
+async function deleteReview(id) {
+  if (!confirm('Delete this review? This cannot be undone.')) return;
+  const { error } = await sb.from('reviews').delete().eq('id', id);
+  if (error) { showToast('❌ Delete failed', true); return; }
+  showToast('🗑 Review deleted');
+  allReviews = allReviews.filter(r => r.id !== id);
+  renderLectures();
+  await renderAdminPanel();
 }
 
 // ── TOAST ──
-function showToast(msg) {
+function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
