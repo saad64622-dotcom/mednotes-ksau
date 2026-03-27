@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedNotes – KSAU</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: rgba(255,255,255,0.06);
+    --accent: #3ecf8e;
+    --accent2: #f5a623;
+    --accent3: #e05c5c;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --gold: #c9a84c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(62,207,142,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(62,207,142,0.03) 1px, transparent 1px);
+    background-size: 48px 48px; pointer-events:none; z-index:0;
+  }
+
+  header {
+    position:sticky; top:0; z-index:100;
+    background:rgba(10,12,16,0.85); backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+    padding:0 24px; height:64px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .logo span { color:var(--accent); }
+  .badge { font-family:'DM Mono',monospace; font-size:11px; padding:4px 10px; border-radius:20px; border:1px solid var(--gold); color:var(--gold); letter-spacing:1px; }
+
+  main { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:40px 24px 80px; }
+
+  .hero { text-align:center; margin-bottom:48px; animation:fadeUp 0.6s ease both; }
+  .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(32px,5vw,52px); font-weight:900; line-height:1.1; margin-bottom:12px; }
+  .hero h1 em { color:var(--accent); font-style:normal; }
+  .hero p { color:var(--muted); font-size:15px; max-width:480px; margin:0 auto; }
+
+  .tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:4px; margin-bottom:32px; animation:fadeUp 0.6s 0.1s ease both; }
+  .tab { flex:1; padding:10px; border:none; background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; border-radius:9px; cursor:pointer; transition:all 0.2s; }
+  .tab.active { background:var(--surface2); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.4); }
+
+  .panel { display:none; animation:fadeUp 0.4s ease both; }
+  .panel.active { display:block; }
+
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
+  .card h2 { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+  .card h2 .icon { font-size:22px; }
+
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:600px){ .form-grid { grid-template-columns:1fr; } }
+
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field.full { grid-column:1/-1; }
+  label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; }
+
+  input, select, textarea {
+    background:var(--bg); border:1px solid var(--border); border-radius:10px;
+    color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px;
+    padding:10px 14px; outline:none; transition:border-color 0.2s; width:100%;
+  }
+  input:focus, select:focus, textarea:focus { border-color:var(--accent); }
+  select option { background:var(--surface2); }
+  textarea { resize:vertical; min-height:90px; }
+
+  .star-group { display:flex; gap:6px; align-items:center; }
+  .star { font-size:26px; cursor:pointer; transition:transform 0.15s; filter:grayscale(1) brightness(0.4); user-select:none; }
+  .star.lit { filter:none; transform:scale(1.1); }
+  .star:hover { transform:scale(1.2); }
+
+  .tag-group { display:flex; flex-wrap:wrap; gap:8px; }
+  .tag { padding:6px 14px; border-radius:20px; border:1px solid var(--border); font-size:13px; cursor:pointer; transition:all 0.15s; background:transparent; color:var(--muted); }
+  .tag.selected { border-color:var(--accent); color:var(--accent); background:rgba(62,207,142,0.08); }
+
+  .btn-submit { width:100%; margin-top:20px; padding:14px; background:var(--accent); color:#0a0c10; border:none; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:opacity 0.2s, transform 0.15s; letter-spacing:0.3px; }
+  .btn-submit:hover { opacity:0.9; transform:translateY(-1px); }
+  .btn-submit:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+  .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .filter-btn { padding:7px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:13px; cursor:pointer; transition:all 0.15s; }
+  .filter-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(62,207,142,0.08); }
+
+  .search-bar { position:relative; margin-bottom:20px; }
+  .search-bar input { padding-left:40px; }
+  .search-bar .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:16px; pointer-events:none; }
+
+  .lecture-grid { display:grid; gap:16px; }
+  .lec-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px; cursor:pointer; transition:border-color 0.2s, transform 0.15s; position:relative; overflow:hidden; }
+  .lec-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:var(--accent); opacity:0; transition:opacity 0.2s; }
+  .lec-card:hover { border-color:rgba(62,207,142,0.3); transform:translateY(-2px); }
+  .lec-card:hover::before { opacity:1; }
+
+  .lec-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:12px; }
+  .lec-title { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; line-height:1.3; }
+  .lec-meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+  .meta-pill { font-size:11px; font-family:'DM Mono',monospace; padding:3px 9px; border-radius:10px; background:var(--surface2); color:var(--muted); }
+
+  .stars-display { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+  .stars-display .s { font-size:14px; }
+  .stars-display .avg { font-weight:700; font-size:14px; color:var(--accent2); margin-left:2px; }
+  .stars-display .count { font-size:11px; color:var(--muted); }
+
+  .lec-tip { font-size:13px; color:var(--muted); line-height:1.5; margin-top:8px; border-top:1px solid var(--border); padding-top:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+  .modal-overlay { position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; padding:28px; transform:translateY(20px); transition:transform 0.25s; }
+  .modal-overlay.open .modal { transform:translateY(0); }
+  .modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+  .modal-header h2 { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; line-height:1.2; max-width:80%; }
+  .close-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color 0.2s; }
+  .close-btn:hover { color:var(--text); }
+  .modal-ratings { display:flex; gap:20px; flex-wrap:wrap; padding:16px; border-radius:12px; background:var(--surface2); margin-bottom:20px; }
+  .rating-block { text-align:center; }
+  .rating-block .big-star { font-size:28px; }
+  .rating-block .label { font-size:11px; color:var(--muted); margin-top:2px; }
+  .reviews-section h3 { font-size:14px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:14px; }
+  .review-item { background:var(--bg); border-radius:10px; padding:14px 16px; margin-bottom:10px; border:1px solid var(--border); }
+  .review-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .reviewer-name { font-size:13px; font-weight:600; color:var(--accent); }
+  .review-stars { font-size:13px; }
+  .review-tip { font-size:14px; line-height:1.6; color:var(--text); }
+  .review-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .review-tag { font-size:11px; padding:3px 9px; border-radius:10px; background:rgba(62,207,142,0.1); color:var(--accent); border:1px solid rgba(62,207,142,0.2); }
+  .review-date { font-size:11px; color:var(--muted); margin-top:4px; }
+
+  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty-state .big { font-size:48px; margin-bottom:12px; }
+  .empty-state p { font-size:15px; }
+
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; text-align:center; }
+  .stat-card .num { font-family:'Playfair Display',serif; font-size:36px; font-weight:900; color:var(--accent); line-height:1; margin-bottom:4px; }
+  .stat-card .lbl { font-size:13px; color:var(--muted); }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--accent); color:#0a0c10; padding:12px 24px; border-radius:30px; font-weight:700; font-size:14px; transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1); z-index:9999; pointer-events:none; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+  .difficulty-bar { height:6px; border-radius:3px; flex:1; background:var(--surface2); overflow:hidden; }
+  .difficulty-fill { height:100%; border-radius:3px; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width 0.6s ease; }
+
+  .spinner { width:20px; height:20px; border:2px solid rgba(62,207,142,0.3); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .loading-screen { text-align:center; padding:80px 20px; color:var(--muted); }
+  .loading-screen .spinner { width:36px; height:36px; margin-bottom:16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Med<span>Notes</span></div>
+  <div class="badge">KSAU · MEDICINE</div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Rate your lectures.<br><em>Help your crew.</em></h1>
+    <p>Leave honest ratings and tips for every lecture — so your friends know exactly what to expect before they open their notes.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('browse')">📚 Browse Lectures</button>
+    <button class="tab" onclick="switchTab('submit')">✍️ Submit Review</button>
+    <button class="tab" onclick="switchTab('stats')">📊 Stats</button>
+  </div>
+
+  <!-- BROWSE -->
+  <div class="panel active" id="panel-browse">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search lecture title or subject…" id="searchInput" oninput="renderLectures()">
+    </div>
+    <div class="filters" id="subjectFilters"></div>
+    <div class="lecture-grid" id="lectureGrid">
+      <div class="loading-screen"><div class="spinner"></div><p>Loading lectures…</p></div>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <div class="panel" id="panel-submit">
+    <div class="card">
+      <h2><span class="icon">📝</span>Add a Lecture Review</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label>Your Name / Nickname</label>
+          <input type="text" id="reviewer" placeholder="e.g. Turki, anonymouse…">
+        </div>
+        <div class="field">
+          <label>Subject / Block</label>
+          <select id="subject">
+            <option value="">— Select subject —</option>
+            <option>Anatomy</option>
+            <option>Physiology</option>
+            <option>Biochemistry</option>
+            <option>Histology</option>
+            <option>Pathology</option>
+            <option>Microbiology</option>
+            <option>Pharmacology</option>
+            <option>Immunology</option>
+            <option>Clinical Skills</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Lecture Title</label>
+          <input type="text" id="lectureTitle" placeholder="e.g. Brachial Plexus – Dr. Ahmed">
+        </div>
+        <div class="field full">
+          <label>Overall Rating</label>
+          <div class="star-group" id="overallStars">
+            <span class="star" data-val="1">⭐</span>
+            <span class="star" data-val="2">⭐</span>
+            <span class="star" data-val="3">⭐</span>
+            <span class="star" data-val="4">⭐</span>
+            <span class="star" data-val="5">⭐</span>
+            <span style="margin-left:8px;font-size:13px;color:var(--muted)" id="overallLabel">Tap to rate</span>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Difficulty Level</label>
+          <div class="star-group" id="diffStars">
+            <span class="star" data-val="1">🔥</span>
+            <span class="star" data-val="2">🔥</span>
+            <span class="star" data-val="3">🔥</span>
+            <span class="star" data-val="4">🔥</span>
+            <span class="star" data-val="5">🔥</span>
+            <span style="margin-left:8px;font-size:13px;color:var(--muted)" id="diffLabel">Tap to rate</span>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Tags (pick all that apply)</label>
+          <div class="tag-group" id="tagGroup">
+            <button type="button" class="tag" data-tag="High-yield">🎯 High-yield</button>
+            <button type="button" class="tag" data-tag="Read slides only">📑 Read slides only</button>
+            <button type="button" class="tag" data-tag="Must attend">🏛 Must attend</button>
+            <button type="button" class="tag" data-tag="Recording is enough">🎥 Recording is enough</button>
+            <button type="button" class="tag" data-tag="Memorization heavy">🧠 Memorization heavy</button>
+            <button type="button" class="tag" data-tag="Concept-based">💡 Concept-based</button>
+            <button type="button" class="tag" data-tag="Clinical relevance">🏥 Clinical relevance</button>
+            <button type="button" class="tag" data-tag="Confusing">😵 Confusing</button>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Tips for Friends</label>
+          <textarea id="tipText" placeholder="e.g. Focus on the last 10 slides, the first half is not important. The nerve supply tables will definitely show up in the exam…"></textarea>
+        </div>
+      </div>
+      <button class="btn-submit" id="submitBtn" onclick="submitReview()">Submit Review →</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="panel" id="panel-stats">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="card" id="topLecCard" style="display:none">
+      <h2><span class="icon">🏆</span>Top Rated Lectures</h2>
+      <div id="topLecList"></div>
+    </div>
+    <div class="card" id="hardLecCard" style="display:none">
+      <h2><span class="icon">🔥</span>Hardest Lectures</h2>
+      <div id="hardLecList"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+      <button class="close-btn" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://gulnhqfllbdskiwrttvz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bG5ocWZsbGJkc2tpd3J0dHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTIyOTksImV4cCI6MjA5MDE2ODI5OX0.xV5lbcKuDqBAY6iKRSxEm3y_0idNjBNOngzxy4IoGQg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── STATE ──
+let allReviews = [];
+let overallRating = 0, diffRating = 0, selectedTags = [];
+let activeSubjectFilter = 'All';
+
+// ── INIT ──
+(async () => {
+  await fetchReviews();
+  initStars();
+  initTags();
+})();
+
+async function fetchReviews() {
+  const { data, error } = await sb
+    .from('reviews')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { showToast('⚠️ Could not load reviews'); console.error(error); return; }
+  allReviews = data || [];
+  renderLectures();
+}
+
+// ── GROUP reviews by lecture ──
+function groupedLectures() {
+  const map = {};
+  allReviews.forEach(r => {
+    const key = `${r.subject}__${r.lecture_title}`;
+    if (!map[key]) map[key] = { subject: r.subject, title: r.lecture_title, reviews: [] };
+    map[key].reviews.push(r);
+  });
+  return Object.values(map);
+}
+
+function avgRating(lec) {
+  if (!lec.reviews.length) return 0;
+  return lec.reviews.reduce((s, r) => s + r.overall, 0) / lec.reviews.length;
+}
+function avgDiff(lec) {
+  if (!lec.reviews.length) return 0;
+  return lec.reviews.reduce((s, r) => s + r.difficulty, 0) / lec.reviews.length;
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['browse','submit','stats'][i] === tab);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'browse') { fetchReviews(); }
+  if (tab === 'stats')  { fetchReviews().then(renderStats); }
+}
+
+// ── RENDER LECTURES ──
+function renderLectures() {
+  const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const lectures = groupedLectures();
+
+  const subjects = ['All', ...new Set(lectures.map(l => l.subject))];
+  document.getElementById('subjectFilters').innerHTML = subjects.map(s =>
+    `<button class="filter-btn ${s === activeSubjectFilter ? 'active' : ''}" onclick="setFilter('${s}')">${s}</button>`
+  ).join('');
+
+  let filtered = lectures.filter(l => {
+    const matchSearch = l.title.toLowerCase().includes(query) || l.subject.toLowerCase().includes(query);
+    const matchSub = activeSubjectFilter === 'All' || l.subject === activeSubjectFilter;
+    return matchSearch && matchSub;
+  }).sort((a, b) => avgRating(b) - avgRating(a));
+
+  const grid = document.getElementById('lectureGrid');
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="big">📖</div><p>${query ? 'No results found.' : 'No reviews yet — be the first!'}</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(l => {
+    const avg  = avgRating(l).toFixed(1);
+    const diff = avgDiff(l).toFixed(1);
+    const count = l.reviews.length;
+    const lastTip = l.reviews[0]?.tip || '';
+    const safeSubject = encodeURIComponent(l.subject);
+    const safeTitle   = encodeURIComponent(l.title);
+    return `
+      <div class="lec-card" onclick="openModal('${safeSubject}','${safeTitle}')">
+        <div class="lec-header">
+          <div class="lec-title">${l.title}</div>
+          <div class="stars-display">
+            <span class="s">⭐</span>
+            <span class="avg">${avg}</span>
+            <span class="count">(${count})</span>
+          </div>
+        </div>
+        <div class="lec-meta">
+          <span class="meta-pill">${l.subject}</span>
+          <span class="meta-pill">🔥 ${diff} difficulty</span>
+          <span class="meta-pill">${count} review${count > 1 ? 's' : ''}</span>
+        </div>
+        ${lastTip ? `<div class="lec-tip">💡 ${lastTip}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function setFilter(subject) {
+  activeSubjectFilter = subject;
+  renderLectures();
+}
+
+// ── MODAL ──
+function openModal(safeSubject, safeTitle) {
+  const subject = decodeURIComponent(safeSubject);
+  const title   = decodeURIComponent(safeTitle);
+  const lec = groupedLectures().find(l => l.subject === subject && l.title === title);
+  if (!lec) return;
+
+  const avg  = avgRating(lec).toFixed(1);
+  const diff = avgDiff(lec).toFixed(1);
+
+  const tagFreq = {};
+  lec.reviews.forEach(r => (r.tags||[]).forEach(t => tagFreq[t] = (tagFreq[t]||0)+1));
+  const topTags = Object.entries(tagFreq).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  document.getElementById('modalTitle').textContent = title;
+  let body = `
+    <div class="modal-ratings">
+      <div class="rating-block"><div class="big-star">⭐ ${avg}</div><div class="label">Overall (${lec.reviews.length} reviews)</div></div>
+      <div class="rating-block"><div class="big-star">🔥 ${diff}</div><div class="label">Difficulty</div></div>
+      <div class="rating-block"><div class="big-star">📚</div><div class="label">${subject}</div></div>
+    </div>`;
+
+  if (topTags.length) {
+    body += `<div class="review-tags" style="margin-bottom:16px">${topTags.map(([t,c])=>`<span class="review-tag">${t} ×${c}</span>`).join('')}</div>`;
+  }
+
+  body += `<div class="reviews-section"><h3>${lec.reviews.length} Review${lec.reviews.length>1?'s':''}</h3>`;
+  body += lec.reviews.map(r => `
+    <div class="review-item">
+      <div class="review-top">
+        <span class="reviewer-name">${r.reviewer}</span>
+        <span class="review-stars">⭐${r.overall} 🔥${r.difficulty}</span>
+      </div>
+      ${r.tip ? `<div class="review-tip">${r.tip}</div>` : ''}
+      ${(r.tags||[]).length ? `<div class="review-tags">${r.tags.map(t=>`<span class="review-tag">${t}</span>`).join('')}</div>` : ''}
+      <div class="review-date">${new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+    </div>`).join('');
+  body += `</div>`;
+
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+// ── STARS ──
+function initStars() {
+  const overallLabels = ['Poor 😕','Fair 😐','Good 👍','Great 😄','Excellent 🌟'];
+  const diffLabels    = ['Very Easy 😴','Easy 🙂','Moderate 🤔','Hard 😰','Brutal 🤯'];
+
+  setupStarGroup('overallStars', 'overallLabel', overallLabels, v => overallRating = v);
+  setupStarGroup('diffStars',    'diffLabel',    diffLabels,    v => diffRating    = v);
+}
+
+function setupStarGroup(groupId, labelId, labels, setter) {
+  document.getElementById(groupId).querySelectorAll('.star').forEach(s => {
+    s.addEventListener('click', () => {
+      const val = +s.dataset.val;
+      setter(val);
+      document.getElementById(groupId).querySelectorAll('.star').forEach(x => x.classList.toggle('lit', +x.dataset.val <= val));
+      document.getElementById(labelId).textContent = labels[val-1];
+    });
+  });
+}
+
+// ── TAGS ──
+function initTags() {
+  document.getElementById('tagGroup').querySelectorAll('.tag').forEach(t => {
+    t.addEventListener('click', () => {
+      const tag = t.dataset.tag;
+      if (selectedTags.includes(tag)) {
+        selectedTags = selectedTags.filter(x => x !== tag);
+        t.classList.remove('selected');
+      } else {
+        selectedTags.push(tag);
+        t.classList.add('selected');
+      }
+    });
+  });
+}
+
+// ── SUBMIT ──
+async function submitReview() {
+  const reviewer = document.getElementById('reviewer').value.trim();
+  const subject  = document.getElementById('subject').value;
+  const title    = document.getElementById('lectureTitle').value.trim();
+  const tip      = document.getElementById('tipText').value.trim();
+
+  if (!reviewer || !subject || !title || !overallRating || !diffRating) {
+    showToast('⚠️ Please fill in all fields and ratings'); return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+  const { error } = await sb.from('reviews').insert({
+    reviewer, subject, lecture_title: title,
+    overall: overallRating, difficulty: diffRating,
+    tags: selectedTags, tip
+  });
+
+  if (error) {
+    showToast('❌ Error saving. Try again.'); console.error(error);
+    btn.disabled = false; btn.textContent = 'Submit Review →'; return;
+  }
+
+  // Reset form
+  overallRating = 0; diffRating = 0; selectedTags = [];
+  ['reviewer','lectureTitle','tipText'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('subject').value = '';
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('lit'));
+  document.getElementById('overallLabel').textContent = 'Tap to rate';
+  document.getElementById('diffLabel').textContent = 'Tap to rate';
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+
+  btn.disabled = false; btn.textContent = 'Submit Review →';
+  showToast('✅ Review submitted!');
+  switchTab('browse');
+}
+
+// ── STATS ──
+async function renderStats() {
+  const lectures = groupedLectures();
+  const totalReviews = allReviews.length;
+  const subjects = new Set(allReviews.map(r => r.subject)).size;
+  const allRatingsArr = allReviews.map(r => r.overall);
+  const globalAvg = allRatingsArr.length ? (allRatingsArr.reduce((a,b)=>a+b,0)/allRatingsArr.length).toFixed(1) : '—';
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="num">${lectures.length}</div><div class="lbl">Lectures Rated</div></div>
+    <div class="stat-card"><div class="num">${totalReviews}</div><div class="lbl">Total Reviews</div></div>
+    <div class="stat-card"><div class="num">${subjects}</div><div class="lbl">Subjects Covered</div></div>
+    <div class="stat-card"><div class="num">${globalAvg}</div><div class="lbl">Avg Rating ⭐</div></div>
+  `;
+
+  if (!lectures.length) return;
+
+  const sorted  = [...lectures].sort((a,b) => avgRating(b) - avgRating(a));
+  const hardest = [...lectures].sort((a,b) => avgDiff(b) - avgDiff(a));
+
+  document.getElementById('topLecCard').style.display = '';
+  document.getElementById('topLecList').innerHTML = sorted.slice(0,5).map((l,i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--accent);width:28px">${i+1}</span>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px">${l.title}</div>
+        <div style="font-size:12px;color:var(--muted)">${l.subject} · ${l.reviews.length} review${l.reviews.length>1?'s':''}</div>
+      </div>
+      <span style="color:var(--accent2);font-weight:700">⭐ ${avgRating(l).toFixed(1)}</span>
+    </div>`).join('');
+
+  document.getElementById('hardLecCard').style.display = '';
+  document.getElementById('hardLecList').innerHTML = hardest.slice(0,5).map((l,i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--accent3);width:28px">${i+1}</span>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px">${l.title}</div>
+        <div style="font-size:12px;color:var(--muted)">${l.subject}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="difficulty-bar" style="width:80px"><div class="difficulty-fill" style="width:${(avgDiff(l)/5*100).toFixed(0)}%"></div></div>
+        <span style="color:var(--accent3);font-weight:700;font-size:13px">🔥${avgDiff(l).toFixed(1)}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
