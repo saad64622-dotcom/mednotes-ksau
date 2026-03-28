@@ -407,10 +407,19 @@ let editingId = null;
 })();
 
 async function fetchReviews() {
-  const { data, error } = await sb.from('reviews').select('*').order('created_at', { ascending: false });
-  if (error) { showToast('⚠️ Could not connect to database', true); return; }
-  allReviews = data || [];
-  renderLectures();
+  try {
+    const { data, error } = await sb.from('reviews').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error('Fetch error:', error);
+      document.getElementById('lectureGrid').innerHTML = `<div class="empty-state"><div class="big">⚠️</div><p>Could not load reviews. Check your connection.</p></div>`;
+      return;
+    }
+    allReviews = data || [];
+    renderLectures();
+  } catch(e) {
+    console.error('Fetch exception:', e);
+    document.getElementById('lectureGrid').innerHTML = `<div class="empty-state"><div class="big">⚠️</div><p>Network error. Please refresh.</p></div>`;
+  }
 }
 
 // ── BRANCH FILTERS ──
@@ -872,8 +881,6 @@ function toggleEdit(id, block, subject) {
 
 async function saveEdit(id) {
   const reviewer = (document.getElementById(`edit-reviewer-${id}`)?.value || '').trim();
-async function saveEdit(id) {
-  const reviewer = (document.getElementById(`edit-reviewer-${id}`)?.value || '').trim();
   const branch   = document.getElementById(`edit-branch-${id}`)?.value || '';
   const blockVal = document.getElementById(`edit-block-${id}`)?.value || '';
   const subject  = document.getElementById(`edit-subject-${id}`)?.value || '';
@@ -895,7 +902,6 @@ async function saveEdit(id) {
       lecture_title: title,
       tip:           tip
     };
-    // Add block separately to avoid any JS reserved word issues
     updateData['block'] = blockVal;
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?id=eq.${id}`, {
@@ -912,7 +918,7 @@ async function saveEdit(id) {
     if (!res.ok) {
       const errText = await res.text();
       console.error('Save error:', res.status, errText);
-      showToast(`❌ Save failed (${res.status})`, true);
+      showToast(`❌ Save failed (${res.status}): ${errText.slice(0,100)}`, true);
       if (btn) { btn.textContent = '💾 Save'; btn.disabled = false; }
       return;
     }
