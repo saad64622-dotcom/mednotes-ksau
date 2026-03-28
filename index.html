@@ -567,7 +567,7 @@ function openModal(idx) {
   lec.reviews.forEach(r => (r.tags||[]).forEach(t => tagFreq[t] = (tagFreq[t]||0)+1));
   const topTags = Object.entries(tagFreq).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
-  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalTitle').textContent = lec.title;
   let body = `
     <div class="modal-ratings">
       <div class="rating-block"><div class="big">⭐ ${avgO}</div><div class="lbl">Overall · ${lec.reviews.length} reviews</div></div>
@@ -760,7 +760,11 @@ function checkAdminPass() {
 async function renderAdminPanel(search = '') {
   await fetchReviews();
   const filtered = search
-    ? allReviews.filter(r => r.lecture_title.toLowerCase().includes(search) || r.reviewer.toLowerCase().includes(search) || (r.block||'').toLowerCase().includes(search) || (r.branch||'').toLowerCase().includes(search))
+    ? allReviews.filter(r =>
+        (r.lecture_title||'').toLowerCase().includes(search) ||
+        (r.reviewer||'').toLowerCase().includes(search) ||
+        (r.block||'').toLowerCase().includes(search) ||
+        (r.branch||'').toLowerCase().includes(search))
     : allReviews;
 
   const blockOpts = ['Cardiology','Musculoskeletal','Neurology','Respiratory','Gastrointestinal','Renal','Endocrine','Hematology','Reproductive','Immunology','Other'].map(b=>`<option value="${b}">${b}</option>`).join('');
@@ -774,23 +778,24 @@ async function renderAdminPanel(search = '') {
     <div class="admin-search">
       <div class="search-wrap" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="Search by lecture, reviewer, block, branch…" value="${search}" oninput="renderAdminPanel(this.value)" style="padding-left:36px"></div>
     </div>
-    ${filtered.length === 0 ? '<div class="empty-state"><div class="big">🔍</div><p>No reviews found.</p></div>' :
-      filtered.map(r => `
+    ${filtered.length === 0
+      ? '<div class="empty-state"><div class="big">🔍</div><p>No reviews found.</p></div>'
+      : filtered.map(r => `
         <div class="review-row" id="row-${r.id}">
           <div class="review-row-info">
             <div class="review-row-title">${r.lecture_title}</div>
             <div class="review-row-meta">
-              ${r.branch?`${r.branch==='Riyadh'?'🏙️':'🌊'} ${r.branch} · `:''}${r.block||'—'} · ${r.subject||'—'} · by <strong>${r.reviewer}</strong> · ⭐${r.overall} 🔥${r.difficulty} · ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+              ${r.branch ? `${r.branch==='Riyadh'?'🏙️':'🌊'} ${r.branch} · ` : ''}${r.block||'—'} · ${r.subject||'—'} · by <strong>${r.reviewer}</strong> · ⭐${r.overall} 🔥${r.difficulty} · ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
             </div>
-
-            <!-- VIEW MODE -->
             <div id="view-${r.id}">
               <div class="review-row-tip">${r.tip || '<span style="color:var(--muted);font-style:italic">No tip</span>'}</div>
             </div>
-
-            <!-- EDIT MODE -->
             <div id="edit-${r.id}" style="display:none;margin-top:10px">
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                <div>
+                  <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Reviewer Name</label>
+                  <input type="text" id="edit-reviewer-${r.id}" value="${(r.reviewer||'').replace(/"/g,'&quot;')}" style="font-size:12px;padding:6px 10px">
+                </div>
                 <div>
                   <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Branch</label>
                   <select id="edit-branch-${r.id}" style="font-size:12px;padding:6px 10px">
@@ -814,7 +819,7 @@ async function renderAdminPanel(search = '') {
               </div>
               <div style="margin-bottom:8px">
                 <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Lecture Title</label>
-                <input type="text" id="edit-title-${r.id}" value="${r.lecture_title}" style="font-size:12px;padding:6px 10px">
+                <input type="text" id="edit-title-${r.id}" value="${(r.lecture_title||'').replace(/"/g,'&quot;')}" style="font-size:12px;padding:6px 10px">
               </div>
               <div>
                 <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:block;margin-bottom:4px">Tip</label>
@@ -823,21 +828,30 @@ async function renderAdminPanel(search = '') {
             </div>
           </div>
           <div class="review-row-actions">
-            <button class="btn-edit-save" id="edit-btn-${r.id}" onclick="toggleEdit('${r.id}','${(r.block||'').replace(/'/g,"\\'")}','${(r.subject||'').replace(/'/g,"\\'")}')">✏️ Edit</button>
+            <button class="btn-edit-save" id="edit-btn-${r.id}">✏️ Edit</button>
             <button class="btn-delete" onclick="deleteReview('${r.id}')">🗑 Delete</button>
           </div>
         </div>`).join('')
     }`;
+
+  // Attach edit button listeners AFTER innerHTML is set — avoids inline onclick issues
+  filtered.forEach(r => {
+    const btn = document.getElementById(`edit-btn-${r.id}`);
+    if (btn) btn.addEventListener('click', () => toggleEdit(r.id, r.block||'', r.subject||''));
+  });
 }
 
 function toggleEdit(id, block, subject) {
   const viewEl = document.getElementById(`view-${id}`);
   const editEl = document.getElementById(`edit-${id}`);
   const btn    = document.getElementById(`edit-btn-${id}`);
-  if (editEl.style.display === 'none') {
+  if (!viewEl || !editEl || !btn) return;
+
+  const isOpen = editEl.style.display !== 'none';
+  if (!isOpen) {
     viewEl.style.display = 'none';
     editEl.style.display = 'block';
-    // pre-select current values
+    // Pre-select current values
     const bSel = document.getElementById(`edit-block-${id}`);
     const sSel = document.getElementById(`edit-subject-${id}`);
     if (bSel) bSel.value = block;
@@ -853,39 +867,30 @@ function toggleEdit(id, block, subject) {
 }
 
 async function saveEdit(id) {
-  const branch  = document.getElementById(`edit-branch-${id}`)?.value || '';
-  const block   = document.getElementById(`edit-block-${id}`)?.value || '';
-  const subject = document.getElementById(`edit-subject-${id}`)?.value || '';
-  const title   = document.getElementById(`edit-title-${id}`)?.value.trim() || '';
-  const tip     = document.getElementById(`edit-tip-${id}`)?.value.trim() || '';
-  const btn     = document.getElementById(`edit-btn-${id}`);
+  const reviewer = (document.getElementById(`edit-reviewer-${id}`)?.value || '').trim();
+  const branch   = document.getElementById(`edit-branch-${id}`)?.value || '';
+  const blockVal = document.getElementById(`edit-block-${id}`)?.value || '';
+  const subject  = document.getElementById(`edit-subject-${id}`)?.value || '';
+  const title    = (document.getElementById(`edit-title-${id}`)?.value || '').trim();
+  const tip      = (document.getElementById(`edit-tip-${id}`)?.value || '').trim();
+  const btn      = document.getElementById(`edit-btn-${id}`);
 
-  if (!block || !subject || !title) {
-    showToast('⚠️ Block, subject and title are required', true); return;
+  if (!reviewer || !blockVal || !subject || !title) {
+    showToast('⚠️ Reviewer, block, subject and title are required', true); return;
   }
 
   btn.textContent = '…'; btn.disabled = true;
 
-  // Use raw fetch to avoid any Supabase client column name issues
-  const payload = { branch, subject, lecture_title: title, tip };
-  payload['block'] = block; // explicit assignment
+  const { error } = await sb
+    .from('reviews')
+    .update({ reviewer, branch, block: blockVal, subject, lecture_title: title, tip })
+    .eq('id', id);
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?id=eq.${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const text = await res.text();
-  if (!res.ok) {
-    console.error('Save error:', res.status, text);
-    showToast(`❌ Error ${res.status}: ${text.slice(0,80)}`, true);
-    btn.textContent = '💾 Save'; btn.disabled = false; return;
+  if (error) {
+    console.error('Save error:', error);
+    showToast(`❌ ${error.message || 'Save failed'}`, true);
+    btn.textContent = '💾 Save'; btn.disabled = false;
+    return;
   }
 
   showToast('✅ Saved!');
