@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedNotes – KSAU</title>
+<title>MedNotes – KSAU Medicine</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -524,7 +524,7 @@ function renderLectures() {
     return;
   }
 
-  grid.innerHTML = filtered.map(l => {
+  grid.innerHTML = filtered.map((l, idx) => {
     const blockInfo = BLOCKS[l.block] || BLOCKS['Other'];
     const cls = blockInfo.cls;
     const color = getBlockColor(l.block);
@@ -532,13 +532,9 @@ function renderLectures() {
     const avgD = avg(l,'difficulty').toFixed(1);
     const count = l.reviews.length;
     const lastTip = l.reviews[0]?.tip || '';
-    const sB = encodeURIComponent(l.block);
-    const sS = encodeURIComponent(l.subject);
-    const sT = encodeURIComponent(l.title);
-    const sBr = encodeURIComponent(l.branch||'');
     const branchIcon = l.branch === 'Riyadh' ? '🏙️' : l.branch === 'Jeddah' ? '🌊' : '';
     return `
-      <div class="lec-card ${cls}" onclick="openModal('${sB}','${sS}','${sT}','${sBr}')">
+      <div class="lec-card ${cls}" onclick="openModal(${idx})">
         <div class="lec-header">
           <div class="lec-title">${l.title}</div>
           <div class="stars-display">⭐<span class="avg">${avgO}</span><span class="cnt">(${count})</span></div>
@@ -553,15 +549,14 @@ function renderLectures() {
         ${lastTip ? `<div class="lec-tip">💡 ${lastTip}</div>` : ''}
       </div>`;
   }).join('');
+
+  // store filtered list for modal lookup
+  window._filteredLectures = filtered;
 }
 
 // ── MODAL ──
-function openModal(sB, sS, sT, sBr) {
-  const block = decodeURIComponent(sB);
-  const subject = decodeURIComponent(sS);
-  const title = decodeURIComponent(sT);
-  const branch = decodeURIComponent(sBr||'');
-  const lec = groupedLectures().find(l => l.block === block && l.subject === subject && l.title === title && (l.branch||'') === branch);
+function openModal(idx) {
+  const lec = (window._filteredLectures || [])[idx];
   if (!lec) return;
 
   const avgO = avg(lec,'overall').toFixed(1);
@@ -871,21 +866,25 @@ async function saveEdit(id) {
 
   btn.textContent = '…'; btn.disabled = true;
 
-  const { data, error } = await sb
-    .from('reviews')
-    .update({
-      branch:        branch,
-      block:         block,
-      subject:       subject,
-      lecture_title: title,
-      tip:           tip
-    })
-    .eq('id', id)
-    .select();
+  // Use raw fetch to avoid any Supabase client column name issues
+  const payload = { branch, subject, lecture_title: title, tip };
+  payload['block'] = block; // explicit assignment
 
-  if (error) {
-    console.error('Supabase update error:', JSON.stringify(error));
-    showToast(`❌ ${error.message || 'Save failed'}`, true);
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    console.error('Save error:', res.status, text);
+    showToast(`❌ Error ${res.status}: ${text.slice(0,80)}`, true);
     btn.textContent = '💾 Save'; btn.disabled = false; return;
   }
 
