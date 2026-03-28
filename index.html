@@ -851,18 +851,22 @@ function toggleEdit(id, block, subject) {
   if (!isOpen) {
     viewEl.style.display = 'none';
     editEl.style.display = 'block';
-    // Pre-select current values
     const bSel = document.getElementById(`edit-block-${id}`);
     const sSel = document.getElementById(`edit-subject-${id}`);
     if (bSel) bSel.value = block;
     if (sSel) sSel.value = subject;
-    btn.textContent = '💾 Save';
-    btn.onclick = () => saveEdit(id);
+    // Clone button to remove ALL existing listeners, then set fresh onclick
+    const newBtn = btn.cloneNode(true);
+    newBtn.textContent = '💾 Save';
+    newBtn.onclick = () => saveEdit(id);
+    btn.parentNode.replaceChild(newBtn, btn);
   } else {
     viewEl.style.display = 'block';
     editEl.style.display = 'none';
-    btn.textContent = '✏️ Edit';
-    btn.onclick = () => toggleEdit(id, block, subject);
+    const newBtn = btn.cloneNode(true);
+    newBtn.textContent = '✏️ Edit';
+    newBtn.onclick = () => toggleEdit(id, block, subject);
+    btn.parentNode.replaceChild(newBtn, btn);
   }
 }
 
