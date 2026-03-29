@@ -247,8 +247,8 @@ textarea{resize:vertical;min-height:85px;}
     <div class="section-label">Filter by Block</div>
     <div class="block-filters" id="blockFilters"></div>
 
-    <div class="subject-filters" id="subjectFilters" style="display:none"></div>
     <div class="subject-filters" id="weekFilters" style="display:none"></div>
+    <div class="subject-filters" id="subjectFilters" style="display:none"></div>
 
     <div class="lecture-grid" id="lectureGrid">
       <div class="loading-screen"><div class="spinner spinner-lg" style="margin-bottom:14px"></div><p>Loading…</p></div>
@@ -453,33 +453,8 @@ function setBranchFilter(branch) {
   activeWeek = 'All';
   renderBranchFilters();
   renderBlockFilters();
+  renderWeekFilters();
   renderSubjectFilters();
-  renderWeekFilters();
-  renderLectures();
-}
-
-function renderWeekFilters() {
-  const el = document.getElementById('weekFilters');
-  const usedWeeks = [...new Set(
-    allReviews
-      .filter(r =>
-        (activeBranch === 'All' || r.branch === activeBranch) &&
-        (activeBlock  === 'All' || r.block   === activeBlock) &&
-        (activeSubject === 'All' || r.subject === activeSubject) &&
-        r.week
-      )
-      .map(r => r.week)
-  )].sort();
-  if (!usedWeeks.length) { el.style.display = 'none'; return; }
-  el.style.display = 'flex';
-  el.innerHTML = ['All', ...usedWeeks].map(w =>
-    `<button class="subj-pill ${w === activeWeek ? 'active' : ''}" style="${w===activeWeek?'border-color:var(--accent);color:var(--accent);background:rgba(62,207,142,0.1)':''}" onclick="setWeekFilter('${w}')">${w === 'All' ? 'All Weeks' : '📅 ' + w}</button>`
-  ).join('');
-}
-
-function setWeekFilter(week) {
-  activeWeek = week;
-  renderWeekFilters();
   renderLectures();
 }
 
@@ -517,18 +492,22 @@ function setBlockFilter(block) {
   activeSubject = 'All';
   activeWeek = 'All';
   renderBlockFilters();
-  renderSubjectFilters();
   renderWeekFilters();
+  renderSubjectFilters();
   renderLectures();
 }
 
 function renderSubjectFilters() {
   const el = document.getElementById('subjectFilters');
   if (activeBlock === 'All' || !BLOCKS[activeBlock]) { el.style.display = 'none'; return; }
-  
-  const usedSubjects = [...new Set(allReviews.filter(r => r.block === activeBlock && (activeBranch === 'All' || r.branch === activeBranch)).map(r => r.subject))];
+  const usedSubjects = [...new Set(
+    allReviews.filter(r =>
+      r.block === activeBlock &&
+      (activeBranch === 'All' || r.branch === activeBranch) &&
+      (activeWeek === 'All' || r.week === activeWeek)
+    ).map(r => r.subject)
+  )];
   if (!usedSubjects.length) { el.style.display = 'none'; return; }
-
   el.style.display = 'flex';
   el.innerHTML = ['All', ...usedSubjects].map(s =>
     `<button class="subj-pill ${s === activeSubject ? 'active' : ''}" onclick="setSubjectFilter('${s}')">${s}</button>`
@@ -537,9 +516,34 @@ function renderSubjectFilters() {
 
 function setSubjectFilter(subject) {
   activeSubject = subject;
-  activeWeek = 'All';
   renderSubjectFilters();
+  renderLectures();
+}
+
+function renderWeekFilters() {
+  const el = document.getElementById('weekFilters');
+  if (activeBlock === 'All') { el.style.display = 'none'; return; }
+  const usedWeeks = [...new Set(
+    allReviews
+      .filter(r =>
+        (activeBranch === 'All' || r.branch === activeBranch) &&
+        (activeBlock  === 'All' || r.block   === activeBlock) &&
+        r.week
+      )
+      .map(r => r.week)
+  )].sort();
+  if (!usedWeeks.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = ['All', ...usedWeeks].map(w =>
+    `<button class="subj-pill ${w === activeWeek ? 'active' : ''}" style="${w===activeWeek?'border-color:var(--accent);color:var(--accent);background:rgba(62,207,142,0.1)':''}" onclick="setWeekFilter('${w}')">${w === 'All' ? 'All Weeks' : '📅 ' + w}</button>`
+  ).join('');
+}
+
+function setWeekFilter(week) {
+  activeWeek = week;
+  activeSubject = 'All';
   renderWeekFilters();
+  renderSubjectFilters();
   renderLectures();
 }
 
@@ -563,8 +567,8 @@ function avg(lec, field) {
 function renderLectures() {
   const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const lectures = groupedLectures();
-  renderSubjectFilters();
   renderWeekFilters();
+  renderSubjectFilters();
 
   let filtered = lectures.filter(l => {
     const matchQuery   = l.title.toLowerCase().includes(query) || l.subject.toLowerCase().includes(query) || (l.block||'').toLowerCase().includes(query);
